@@ -1,0 +1,36 @@
+version: "3.7"
+
+services:
+  horizon-db:
+    image: postgres:13
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=horizon
+      - POSTGRES_PASSWORD=horizon
+      - POSTGRES_DB=horizon
+      - PGDATA=/pgdata
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U horizon"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    ports:
+      - "15432:5432"
+    volumes:
+      - horizon-data:/pgdata
+
+  redis:
+    image: redis:5.0-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+
+volumes:
+  redis-data:
+  horizon-data:

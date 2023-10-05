@@ -110,6 +110,14 @@ func (s *Storage) ItemChainMappingQ() data.ItemChainMappingQ {
 	}
 }
 
+func (s *Storage) WithdrawalQ() data.WithdrawalQ {
+	return &WithdrawalQ{
+		log:   s.log.WithField("who", "withdrawal-cached-q"),
+		raw:   s.raw.WithdrawalQ(),
+		cache: s.cache,
+	}
+}
+
 func tryGetFromCache(ctx context.Context, c *marshaler.Marshaler, key string, v interface{}) error {
 	if _, err := c.Get(ctx, key, v); err != nil {
 		return errors.Wrap(err, "failed to get from cache")

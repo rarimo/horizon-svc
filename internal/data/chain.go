@@ -13,10 +13,11 @@ type ChainsQ interface {
 }
 
 type Chain struct {
-	ID          int                      `fig:"id,required"`
-	Name        string                   `fig:"name,required"`
-	Rpc         string                   `fig:"rpc,required"`
-	Type        tokenmanager.NetworkType `fig:"type,required"`
-	Icon        *string                  `fig:"icon"`
-	ChainParams json.RawMessage          `fig:"chain_params"`
+	ID             int                      `fig:"id,required"`
+	Name           string                   `fig:"name,required"`
+	Rpc            string                   `fig:"rpc,required"`
+	Type           tokenmanager.NetworkType `fig:"type,required"`
+	BridgeContract string                   `fig:"bridge_contract,required"`
+	Icon           *string                  `fig:"icon"`
+	ChainParams    json.RawMessage          `fig:"chain_params"`
 }

@@ -75,7 +75,7 @@ func (p *collectionIndexer) handle(ctx context.Context, raw msgs.Message) error 
 	}
 }
 
-func (p *collectionIndexer) loadGenesisCollections(ctx context.Context, cfg config.GenesisCfg) error {
+func (p *collectionIndexer) loadGenesisCollections(ctx context.Context, cfg config.GenesisConfig) error {
 	if cfg.Disabled {
 		p.log.Info("skipping genesis collections loading (disabled in config)")
 		return nil

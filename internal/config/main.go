@@ -38,23 +38,23 @@ type Config interface {
 	Tendermint() *thttp.HTTP
 	Cosmos() *grpc.ClientConn
 	TransfersIndexer() TransfersIndexerConfig
-	EVM() *evmConfig
-	Solana() *solanaConfig
-	Near() *nearConfig
 
 	BlockRangeProducer() *BlockRangesProducerConfig
 
 	RarimoCoreProducer() *RarimoCoreProducerConfig
-	ConfirmationsIndexer() ConfirmationsIndexerCfg
-	ApprovalsIndexer() ApprovalsIndexerCfg
-	RejectionsIndexer() RejectionsIndexerCfg
-	VotesIndexer() VotesIndexerCfg
+	ConfirmationsIndexer() ConfirmationsIndexerConfig
+	ApprovalsIndexer() ApprovalsIndexerConfig
+	RejectionsIndexer() RejectionsIndexerConfig
+	VotesIndexer() VotesIndexerConfig
 
 	TokenManagerProducer() *TokenManagerProducerConfig
 	ItemsIndexer() ItemsIndexerConfig
 	CollectionsIndexer() CollectionsIndexerConfig
 
-	Genesis() GenesisCfg
+	Genesis() GenesisConfig
+
+	BridgeProducer() *BridgeProducerConfig
+	WithdrawalsIndexer() *WithdrawalsIndexerConfig
 }
 
 type config struct {
@@ -73,9 +73,6 @@ type config struct {
 	cosmos               comfig.Once
 	core                 comfig.Once
 	transfersIndexer     comfig.Once
-	evm                  comfig.Once
-	solana               comfig.Once
-	near                 comfig.Once
 	blockRangeProducer   comfig.Once
 	rarimocoreProducer   comfig.Once
 	tokenmanagerProducer comfig.Once
@@ -87,6 +84,8 @@ type config struct {
 	collectionsIndexer   comfig.Once
 	cachedstorage        comfig.Once
 	genesis              comfig.Once
+	bridgeProducer       comfig.Once
+	withdrawalsIndexer   comfig.Once
 
 	getter kv.Getter
 }

@@ -8,14 +8,14 @@ import (
 	"gitlab.com/distributed_lab/lorem"
 )
 
-type ApprovalsIndexerCfg struct {
+type ApprovalsIndexerConfig struct {
 	RunnerName        string              `fig:"runner_name"`
 	ApprovalsConsumer msgs.ConsumerConfig `fig:"-"`
 }
 
-func (c *config) ApprovalsIndexer() ApprovalsIndexerCfg {
+func (c *config) ApprovalsIndexer() ApprovalsIndexerConfig {
 	return c.approvalsIndexer.Do(func() interface{} {
-		var cfg ApprovalsIndexerCfg
+		var cfg ApprovalsIndexerConfig
 		yamlName := "approvals_indexer"
 
 		err := figure.
@@ -36,7 +36,7 @@ func (c *config) ApprovalsIndexer() ApprovalsIndexerCfg {
 		}).Consumer()
 
 		return cfg
-	}).(ApprovalsIndexerCfg)
+	}).(ApprovalsIndexerConfig)
 }
 
 func isEmptyOrRandom(s string) bool {

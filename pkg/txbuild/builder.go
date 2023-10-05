@@ -3,9 +3,15 @@ package txbuild
 import (
 	"context"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/olegfomenko/solana-go"
+	"github.com/olegfomenko/solana-go/rpc"
+	"github.com/rarimo/near-go/nearclient"
 
 	"github.com/pkg/errors"
-	"github.com/rarimo/evm-bridge-contracts/gobind/contracts/bridge"
+	gobind "github.com/rarimo/evm-bridge-contracts/gobind/contracts/bridge"
 	"github.com/rarimo/horizon-svc/internal/config"
 	"github.com/rarimo/horizon-svc/internal/data"
 	"github.com/rarimo/horizon-svc/pkg/ethtx"
@@ -19,25 +25,80 @@ var (
 	ErrUnsupportedNetworkType = errors.New("unsupported network type")
 )
 
-type MultiBuilder struct {
-	chains data.ChainsQ
+type Builder interface {
+	BuildTx(ctx context.Context, req *resources.BuildTx, rawTxData interface{}) (*resources.UnsubmittedTx, error)
+}
 
-	evmBuild    *ethtx.Builder
-	solanaBuild *soltx.Builder
-	nearBuild   *neartx.Builder
+type MultiBuilder struct {
+	chains   data.ChainsQ
+	builders map[string]Builder
 }
 
 func NewMultiBuilder(cfg config.Config) *MultiBuilder {
-	abi, err := bridge.BridgeMetaData.GetAbi()
+	abi, err := gobind.BridgeMetaData.GetAbi()
 	if err != nil {
 		panic(errors.Wrap(err, "failed to get bridge abi"))
 	}
 
+	networks, err := cfg.Core().TokenManager().GetParams(context.Background())
+	if err != nil {
+		panic(errors.Wrap(err, "failed to get networks"))
+	}
+
+	builders := make(map[string]Builder)
+	contracts := make(map[string]bridgeConfig)
+
+	for _, net := range networks.Networks {
+		bridgeParams := net.GetBridgeParams()
+		if bridgeParams == nil {
+			continue
+		}
+
+		contracts[net.Name] = bridgeConfig{
+			contract: bridgeParams.Contract,
+			//adminPublicKey: bridgeParams.AdminPublicKey,
+			// TODO: ADD ADMIN PUBLIC KEY THERE
+		}
+	}
+
+	for _, chain := range cfg.ChainsQ().List() {
+		chainConf := contracts[chain.Name]
+		if chainConf.contract == "" {
+			panic(fmt.Errorf("contract address not found for chain %s", chain.Name))
+		}
+
+		switch chain.Type {
+		case tokenmanager.NetworkType_EVM:
+			cli, err := ethclient.Dial(chain.Rpc)
+			if err != nil {
+				panic(errors.Wrap(err, "failed to dial eth client"))
+			}
+
+			builders[chain.Name] = ethtx.NewBuilder(cli, abi, common.HexToAddress(chainConf.contract))
+		case tokenmanager.NetworkType_Solana:
+			if chainConf.adminPublicKey == "" {
+				panic(fmt.Errorf("adminPublicKey not found for chain %s", chain.Name))
+			}
+
+			builders[chain.Name] = soltx.NewBuilder(
+				rpc.New(chain.Rpc),
+				solana.PublicKeyFromBytes(hexutil.MustDecode(chainConf.contract)),
+				solana.PublicKeyFromBytes(hexutil.MustDecode(chainConf.adminPublicKey)),
+			)
+		case tokenmanager.NetworkType_Near:
+			cli, err := nearclient.New(chain.Rpc)
+			if err != nil {
+				panic(errors.Wrap(err, "failed to dial near client"))
+			}
+			builders[chain.Name] = neartx.NewBuilder(cli, string(hexutil.MustDecode(chainConf.contract)))
+		default:
+			panic(fmt.Errorf("unsupported network type %s", chain.Type))
+		}
+	}
+
 	return &MultiBuilder{
-		chains:      cfg.ChainsQ(),
-		evmBuild:    ethtx.NewBuilder(cfg.EVM().RPCClient, abi, cfg.EVM().BridgeContract),
-		solanaBuild: soltx.NewBuilder(cfg.Solana().RPCClient, cfg.Solana().ProgramID, cfg.Solana().BridgeAdminPublicKey),
-		nearBuild:   neartx.NewBuilder(cfg.Near().Client, cfg.Near().BridgeAddress),
+		cfg.ChainsQ(),
+		builders,
 	}
 }
 
@@ -47,14 +108,10 @@ func (t *MultiBuilder) BuildTx(ctx context.Context, req *resources.BuildTx, txDa
 		return nil, ErrUnsupportedNetworkType
 	}
 
-	switch net.Type {
-	case tokenmanager.NetworkType_EVM:
-		return t.evmBuild.BuildTx(ctx, req, txData)
-	case tokenmanager.NetworkType_Solana:
-		return t.solanaBuild.BuildTx(ctx, req, txData)
-	case tokenmanager.NetworkType_Near:
-		return t.nearBuild.BuildTx(ctx, req, txData)
-	default:
-		panic(fmt.Errorf("unsupported network type %s", net.Type))
-	}
+	return t.builders[net.Name].BuildTx(ctx, req, txData)
+}
+
+type bridgeConfig struct {
+	adminPublicKey string
+	contract       string
 }

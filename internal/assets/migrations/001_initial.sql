@@ -134,7 +134,16 @@ create index if not exists item_chain_mapping_address on item_chain_mappings usi
 
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON item_chain_mappings FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
 
+create table if not exists withdrawals(
+    hash bytea primary key,
+    block_height bigint,
+    tx_result jsonb,
+    success bool,
+    created_at timestamp without time zone not null default now()
+);
+
 -- +migrate Down
+drop table if exists withdrawals;
 
 drop trigger if exists set_updated_at on item_chain_mappings;
 drop index if exists item_chain_mapping_item;

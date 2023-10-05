@@ -19,6 +19,8 @@ type Storage interface {
 	CollectionChainMappingQ() CollectionChainMappingQ
 	ItemQ() ItemQ
 	ItemChainMappingQ() ItemChainMappingQ
+
+	WithdrawalQ() WithdrawalQ
 }
 
 type TransferQ interface {
@@ -90,6 +92,11 @@ type ItemChainMappingQ interface {
 }
 
 type SeedQ interface {
+}
+
+type WithdrawalQ interface {
+	InsertBatchCtx(ctx context.Context, withdrawals ...Withdrawal) error
+	WithdrawalByHashCtx(ctx context.Context, hash []byte, isForUpdate bool) (*Withdrawal, error)
 }
 
 type GorpMigrationQ interface {

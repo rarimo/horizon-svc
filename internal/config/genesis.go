@@ -12,12 +12,12 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-type GenesisCfg struct {
+type GenesisConfig struct {
 	Disabled     bool
 	GenesisState *tokenmanager.GenesisState
 }
 
-func (c *config) Genesis() GenesisCfg {
+func (c *config) Genesis() GenesisConfig {
 	return c.genesis.Do(func() interface{} {
 		var cfg struct {
 			File     string `fig:"file"`
@@ -33,7 +33,7 @@ func (c *config) Genesis() GenesisCfg {
 		}
 
 		if cfg.File == "" {
-			return GenesisCfg{
+			return GenesisConfig{
 				Disabled: cfg.Disabled,
 			}
 		}
@@ -63,9 +63,9 @@ func (c *config) Genesis() GenesisCfg {
 			panic(errors.New("read genesis state is empty"))
 		}
 
-		return GenesisCfg{
+		return GenesisConfig{
 			Disabled:     cfg.Disabled,
 			GenesisState: &genesis.AppState.TokenManager,
 		}
-	}).(GenesisCfg)
+	}).(GenesisConfig)
 }

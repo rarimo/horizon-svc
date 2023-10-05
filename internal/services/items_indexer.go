@@ -82,7 +82,7 @@ func (p *itemsIndexer) handle(ctx context.Context, raw msgs.Message) error {
 	}
 }
 
-func (p *itemsIndexer) saveGenesisItems(ctx context.Context, cfg config.GenesisCfg) error {
+func (p *itemsIndexer) saveGenesisItems(ctx context.Context, cfg config.GenesisConfig) error {
 	if cfg.Disabled {
 		p.log.Info("skipping genesis items loading (disabled in config)")
 		return nil
