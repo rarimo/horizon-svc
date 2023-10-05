@@ -1,0 +1,12 @@
+type: object
+required:
+  - id
+  - type
+properties:
+  id:
+    type: string
+    example: "ethereum:a858ddc0445d8131dac4d1de01f834ffcba52ef1"
+  type:
+    type: string
+    enum:
+      - account-external-ids

@@ -1,0 +1,60 @@
+allOf:
+  - $ref: '#/components/schemas/BuildTxKey'
+  - type: object
+    x-go-is-request: true
+    description: data that is required to build a transaction
+    required: [attributes, relationships]
+    properties:
+      attributes:
+        type: object
+        required: [
+          tx_type,
+          tx_data,
+          network,
+        ]
+        properties:
+          tx_type:
+            allOf:
+              - $ref: '#/components/schemas/Enum'
+            format: TxType
+            description: Type of the transaction
+            enum:
+              - name: deposit_native
+                value: 0
+              - name: deposit_erc20
+                value: 1
+              - name: deposit_erc721
+                value: 2
+              - name: deposit_erc1155
+                value: 3
+              - name: deposit_ft
+                value: 4
+              - name: deposit_nft
+                value: 5
+          tx_data:
+            type: object
+            format: json.RawMessage
+            oneOf:
+              - $ref: '#/components/schemas/EthTxData'
+              - $ref: '#/components/schemas/SolanaTxData'
+              - $ref: '#/components/schemas/NearTxData'
+          network:
+            type: string
+            description: network to send tx to
+            example: "Goerli"
+      relationships:
+        type: object
+        required: [creator, creator_account]
+        properties:
+          creator:
+            type: object
+            required: [data]
+            properties:
+              data:
+                $ref: '#/components/schemas/AccountKey'
+          creator_account:
+            type: object
+            required: [data]
+            properties:
+              data:
+                $ref: '#/components/schemas/AccountExternalIDKey'

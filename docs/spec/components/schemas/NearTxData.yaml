@@ -1,0 +1,37 @@
+type: object
+required:
+  - receiver
+  - target_network
+  - sender_public_key
+  - bundle_data
+  - bundle_salt
+properties:
+  receiver:
+    type: string
+    description: The address of the receiver
+    example: "FCpFKSEboCUGg1Qs8NFwH2suMAHYWvFUUiVWk8cKwNqf"
+  sender_public_key:
+    type: string
+    description: "The base64-encoded public key of the sender: base64(publicKeyBase58)"
+  target_network:
+    type: string
+    description: Network which the transfer is to be consumed on
+    example: "Solana"
+  amount:
+    type: string
+    description: The amount to be transferred (string containing a decimal number with precision specified by the contract)
+    example: "1000000000000000000"
+  token_addr:
+    type: string
+    description: |
+      [ OPTIONAL ] should be provided in case of FT and NFT deposit.
+    example: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D"
+  token_id:
+    type: string
+    description: |
+      [ OPTIONAL ] token identifier. Shpuld be provided in case of NFT deposit.
+    example: "0x8edd77407bf7b8a3f06723ae83fbc77a3ebdafe7a18f0b8d72521ffa1b7ae5a"
+  is_wrapped:
+    type: boolean
+    description: indicates that the deposited token is wrapped
+description: transaction parameters for ethereum deposit tx

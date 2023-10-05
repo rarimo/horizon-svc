@@ -1,0 +1,40 @@
+type: object
+required:
+  - receiver
+  - target_network
+  - bundle_data
+  - bundle_salt
+properties:
+  receiver:
+    type: string
+    description: The address of the receiver
+    example: "FCpFKSEboCUGg1Qs8NFwH2suMAHYWvFUUiVWk8cKwNqf"
+  target_network:
+    type: string
+    description: Network which the transfer is to be consumed on
+    example: "Solana"
+  amount:
+    type: string
+    description: The amount of the token to send (string containing a decimal number with precision specified by the contract)
+    example: "1000000000000000000"
+  token_addr:
+    type: string
+    format: common.Address
+    description: |
+      [ OPTIONAL ] contract address that identifies the token to be deposited. If not provided then the native token is used.
+    example: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D"
+  token_id:
+    type: string
+    description: |
+      [ OPTIONAL ] hex-encoded token identifier. Should be provided if contract is provided and is of type ERC721 or ERC1155.
+    example: "0x8edd77407bf7b8a3f06723ae83fbc77a3ebdafe7a18f0b8d72521ffa1b7ae5a"
+  bundle_data:
+    type: string
+    description: bundle data as for calling Deposit* methods [(more info)](https://rarimo.gitlab.io/docs/docs/overview/bundling)
+  bundle_salt:
+    type: string
+    description: bundle salt as for calling Deposit* methods [(more info)](https://rarimo.gitlab.io/docs/docs/overview/bundling)
+  is_wrapped:
+    type: boolean
+    description: indicates that the deposited token is wrapped
+description: transaction parameters for ethereum deposit tx

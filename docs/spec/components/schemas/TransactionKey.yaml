@@ -1,0 +1,13 @@
+type: object
+required:
+  - id
+  - type
+properties:
+  id:
+    type: string
+    description: identifier of the transaction. Format is `{network-name}:{tx_hash}`.
+    example: "Goerli:0x0be6813cc35ab9f7cfe151e7cbcc95e22d265acba3c890f0ac9a26cd066d2a44"
+  type:
+    type: string
+    enum:
+      - transactions

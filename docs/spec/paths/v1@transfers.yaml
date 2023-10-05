@@ -1,0 +1,113 @@
+get:
+  summary: Transfer list
+  # security: TODO
+  description: >
+    Returns list of transfer events registered in core.
+  operationId: transferList
+  tags:
+    - Transfers
+  parameters:
+    - $ref: '#/components/parameters/pageCursorParam'
+    - $ref: '#/components/parameters/pageLimitParam'
+    - $ref: '#/components/parameters/sortingParam'
+    - in: query
+      name: 'filter[origin]'
+      description: Filter transfers by origin field
+      required: false
+      schema:
+        type: string
+        example: "0xb00e53ea1e1af645bd601b1c7f34f80fbdc030186f5ec6f014cf4b340529bb69"
+    - in: query
+      name: 'filter[rarimo_tx]'
+      description: Filter transfers by rarimo transaction hash
+      required: false
+      schema:
+        type: string
+        example: "0x073332A9C5DFC26DECFF9EEBA7D36A14A45E04520B24BEE5004106279596E3AB"
+    - in: query
+      name: 'filter[chain_tx]'
+      description: Filter transfers by transaction hash on source chain // TODO check if it's correct
+      required: false
+      schema:
+        type: string
+        example: "3L7ADrkuERQXAUtoPsSqiPuTXb3BFfahoRvzLavG9Pu5re4AVqM6EjqCKxitdjDjxK73ohJ8edxH4zXPqWJVro6h"
+    - in: query
+      name: 'filter[from_chain]'
+      description: Filter transfers by source chain
+      required: false
+      schema:
+        type: string
+        example: "Goerli"
+    - in: query
+      name: 'filter[to_chain]'
+      description: Filter transfers by destination chain
+      required: false
+      schema:
+        type: string
+        example: "Solana"
+    - in: query
+      name: 'filter[receiver]'
+      description: Filter transfers by destination address
+      required: false
+      schema:
+        type: string
+        example: "0xd30a6d9589a4ad1845f4cfb6cdafa47e2d444fcc568cef04525f1d700f4e53aa"
+    - in: query
+      name: 'filter[token_index]'
+      description: Filter transfers by specific token index stored in rarimo-core
+      required: false
+      schema:
+        type: string
+        example: "Goerli:original721"
+    - in: query
+      name: 'filter[signed]'
+      description: Filter transfers signed flag
+      required: false
+      schema:
+        type: boolean
+        example: "true"
+    - in: query
+      name: 'filter[creator]'
+      description: Filter transfers by creator's rarimo account
+      required: false
+      schema:
+          type: string
+          example: "rarimo1l2vdscjfm289mdxnlnvfwscku4w2l3ljt97kdq"
+    - in: query
+      name: 'filter[created_before]'
+      description: Filter transfers created before specific date
+      required: false
+      schema:
+        type: string
+        description: Date in Unix timestamp format
+        example: "1671516805"
+    - in: query
+      name: 'filter[created_after]'
+      description: Filter transfers created after specific date
+      required: false
+      schema:
+          type: string
+          description: Date in Unix timestap format
+          example: "1671516805"
+  responses:
+    '200':
+      description: OK
+      content:
+        application/vnd.api+json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transfer'
+              included:
+                type: array
+                items:
+                  type: object
+    '400':
+      $ref: '#/components/responses/invalidParameter.yaml'
+    '500':
+      $ref: '#/components/responses/internalError.yaml'

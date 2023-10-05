@@ -1,0 +1,31 @@
+type: object
+required:
+  - receiver
+  - target_network
+  - bundle_data
+  - bundle_seed
+properties:
+  receiver:
+    type: string
+    description: The address of the receiver
+    example: "0x0000000000000000000000000000000000000000"
+  target_network:
+    type: string
+    description: Network which the transfer is to be consumed on
+    example: "Goerli"
+  amount:
+    type: string
+    description: The amount of the token to send (string containing a decimal number with precision specified by the contract)
+    example: "1000000000000000000"
+  token_addr:
+    type: string
+    description: |
+      [ OPTIONAL ] address that identifies the token to be deposited. If not provided then the native token is used.
+    example: "5bW7KPvZwtxqv3d2y51sdxZ4AoZsFiR5iHUWUzRCr4FQ"
+  bundle_data:
+    type: string
+    description: bundle data as for calling Deposit* methods [(more info)](https://rarimo.gitlab.io/docs/docs/overview/bundling)
+  bundle_seed:
+    type: string
+    description: bundle seed as for calling Deposit* methods [(more info)](https://rarimo.gitlab.io/docs/docs/overview/bundling)
+description: transaction parameters for solana deposit tx

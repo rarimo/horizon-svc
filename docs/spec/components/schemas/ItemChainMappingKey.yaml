@@ -1,0 +1,14 @@
+type: object
+required:
+  - id
+  - type
+properties:
+  id:
+    type: string
+    description: "ID of the mapping in a format {item_id}:{chain_id}"
+    example:
+      "43:167"
+  type:
+    type: string
+    enum:
+      - item_chain_mappings

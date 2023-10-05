@@ -1,0 +1,12 @@
+type: object
+required:
+  - id
+  - type
+properties:
+  id:
+    type: string
+    description: hash of the unsigned transaction
+  type:
+    type: string
+    enum:
+      - unsubmitted-transactions

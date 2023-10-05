@@ -1,0 +1,34 @@
+allOf:
+  - $ref: '#/components/schemas/ItemChainMappingKey'
+  - type: object
+    required:
+      - attributes
+      - relationships
+    properties:
+      attributes:
+        type: object
+        required:
+          - address
+        properties:
+          address:
+            type: string
+            description: address of the contract on the target chain items belongs to
+          token_id:
+            type: string
+            description: id of the token for the item on the target chain
+      relationships:
+        type: object
+        required:
+          - chain
+          - item
+        properties:
+          chain:
+            type: object
+            properties:
+              data:
+                $ref: '#/components/schemas/ChainKey'
+          item:
+            type: object
+            properties:
+              data:
+                $ref: '#/components/schemas/ItemKey'

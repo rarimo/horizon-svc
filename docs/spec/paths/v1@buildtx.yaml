@@ -1,0 +1,36 @@
+post:
+  tags:
+    - Transactions
+  summary: Build transaction
+  description: |
+    Allows to build a transaction to send to the particular network. 
+    Endpoint is here to make FE less dependent on the contract implementation. 
+    It is guaranteed that endpoint builds the transaction according to most fresh contract implementation.
+  operationId: buildTx
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            data:
+              type: object
+              $ref: '#/components/schemas/BuildTx'
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/UnsubmittedTx'
+    '400':
+      description: Bad request
+    '500':
+      description: Internal server error
+

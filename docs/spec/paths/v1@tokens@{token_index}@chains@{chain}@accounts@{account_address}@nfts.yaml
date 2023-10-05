@@ -1,0 +1,52 @@
+parameters:
+  - name: token_index
+    in: path
+    description: Token index from rarimo-core
+    required: true
+    schema:
+      type: string
+  - name: chain
+    in: path
+    description: Chain name
+    example: "Solana, Ethereum, Near"
+    required: true
+    schema:
+      type: string
+  - name: account_address
+    in: path
+    description: Account wallet address on chain in chain format
+    required: true
+    schema:
+      type: string
+
+get:
+  tags:
+    - Tokens
+  summary: Get NFTs
+  description: |
+    Returns list of NFTs for the particular account.
+  operationId: getNFTs
+  parameters:
+    - $ref: '#/components/parameters/pageLimitParam'
+    - $ref: '#/components/parameters/pageCursorParam'
+
+  responses:
+    200:
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Nft'
+    400:
+      $ref: '#/components/responses/invalidParameter'
+    401:
+      $ref: '#/components/responses/invalidAuth'
+    500:
+      $ref: '#/components/responses/internalError'

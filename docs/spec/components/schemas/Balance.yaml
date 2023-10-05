@@ -1,0 +1,15 @@
+allOf:
+  - $ref: '#/components/schemas/BalanceKey'
+  - type: object
+    required:
+      - attributes
+    properties:
+      attributes:
+        type: object
+        required:
+          - amount
+        properties:
+          amount:
+            type: string
+            description: Balance amount in specific chain
+            example: "1000000000000000000"

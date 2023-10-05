@@ -1,0 +1,20 @@
+allOf:
+  - $ref: '#/components/schemas/AccountKey'
+  - type: object
+    required:
+      - relationships
+    properties:
+      relationships:
+        type: object
+        required: [
+          external_ids
+        ]
+        properties:
+          external_ids:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  type: object
+                  $ref: '#/components/schemas/AccountExternalIDKey'

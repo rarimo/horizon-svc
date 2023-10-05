@@ -1,0 +1,38 @@
+allOf:
+  - $ref: '#/components/schemas/ItemKey'
+  - type: object
+    required:
+      - attributes
+      - relationships
+    properties:
+      attributes:
+        type: object
+        required:
+          - index
+          - metadata
+        properties:
+          index:
+            type: string
+            description: "unique index of the item saved on core"
+          metadata:
+            type: object
+            format: json.RawMessage
+            description: "free form JSON object representing item's metadata saved on core"
+      relationships:
+        type: object
+        required:
+          - collection
+        properties:
+          collection:
+            type: object
+            properties:
+              data:
+                $ref: '#/components/schemas/CollectionKey'
+          chain_mappings:
+            type: object
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/ItemChainMappingKey'
+
+

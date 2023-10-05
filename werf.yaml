@@ -1,0 +1,48 @@
+configVersion: 1
+project: "horizon-svc"
+---
+image: builder
+from: golang:1.20-alpine
+docker:
+  WORKDIR: /go/src/github.com/rarimo/horizon-svc
+git:
+  - add: /
+    to: /go/src/github.com/rarimo/horizon-svc
+    stageDependencies:
+      install:
+        - go.mod
+        - go.sum
+      setup:
+        - "**/*"
+shell:
+  install:
+    - apk add git build-base
+    - go env -w GOPRIVATE=gitlab.com/*
+    - go env -w GONOSUMDB=gitlab.com/*
+    - go env -w GONOPROXY=gitlab.com/*
+    - cd /go/src/github.com/rarimo/horizon-svc
+    - go mod tidy
+    - go mod vendor
+  setup:
+    - export GOPRIVATE=github.com/*
+    - export GONOSUMDB=github.com/*
+    - export GONOPROXY=github.com/*
+    - export CGO_ENABLED=1
+    - export GO111MODULE=on
+    - export GOOS=linux
+    - cd /go/src/github.com/rarimo/horizon-svc
+    - go build -o /usr/local/bin/horizon-svc /go/src/github.com/rarimo/horizon-svc
+
+---
+image: service
+from: alpine:3.9
+docker:
+  ENTRYPOINT: horizon-svc
+shell:
+  setup:
+    - apk add --no-cache ca-certificates
+import:
+  - image: builder
+    add: /usr/local/bin/horizon-svc
+    to: /usr/local/bin/horizon-svc
+    after: setup

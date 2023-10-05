@@ -1,0 +1,7 @@
+in: query
+name: 'page[cursor]'
+required: false
+description: A pointer to start the page of results with. To get a link to the next page, use the URL in the `links.next` field in the response, which includes the value for this parameter.
+schema:
+  type: string
+  example: "MTA6MjE="

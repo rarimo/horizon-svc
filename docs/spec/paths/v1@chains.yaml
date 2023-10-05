@@ -1,0 +1,39 @@
+get:
+  tags:
+    - Chains
+  summary: Get supported chains list
+  operationId: getChainList
+  parameters:
+    - in: query
+      name: 'include'
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - items
+  responses:
+    200:
+      description: success
+      content:
+        application/vnd.api+json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Chain'
+              included:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+    400:
+      $ref: '#/components/responses/invalidParameter'
+    401:
+      $ref: '#/components/responses/invalidAuth'
+    404:
+      $ref: '#/components/responses/notFound'
+    500:
+      $ref: '#/components/responses/internalError'

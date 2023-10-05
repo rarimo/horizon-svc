@@ -1,0 +1,22 @@
+FROM golang:1.20-alpine as buildbase
+
+WORKDIR /go/src/github.com/rarimo/horizon-svc
+COPY vendor .
+COPY . .
+
+ENV GO111MODULE="on"
+ENV CGO_ENABLED=0
+ENV GOOS="linux"
+
+RUN go build -o /usr/local/bin/horizon-svc github.com/rarimo/horizon-svc
+
+###
+
+FROM alpine:3.9 as calpine
+
+RUN apk add --no-cache ca-certificates
+
+FROM calpine
+
+COPY --from=buildbase /usr/local/bin/horizon-svc /usr/local/bin/horizon-svc
+ENTRYPOINT ["horizon-svc"]

@@ -1,0 +1,85 @@
+allOf:
+  - $ref: '#/components/schemas/TransferKey'
+  - type: object
+    description: Particular cross-chain transfer details
+    required: [attributes, relationships]
+    properties:
+      attributes:
+        type: object
+        required: [
+          status,
+          created_at
+        ]
+        properties:
+          status:
+            allOf:
+              - $ref: '#/components/schemas/Enum'
+            format: TransferState
+            description: Shows state of the transfer
+            enum:
+              - name: unsigned
+                value: 0
+              - name: signed
+                value: 1
+          origin:
+            type: string
+            description: Identifier of the transfer origin
+            example: "0x2dd14269b8eeacc005c2e409fb021e8dd73094a5853b84c11600bc109eca8ca9"
+          event_id:
+            type: string
+            description: Number of the event in source chain's transaction
+            example: "100"
+          from_chain:
+            type: string
+            description: Name of the source chain
+            example: "Goerli"
+          to_chain:
+            type: string
+            description: Name of the destination chain
+            example: "Solana"
+          amount:
+            type: string
+            description: Amount of tokens to be transferred
+            example: "1000000000000000000"
+          bundle_data:
+            type: string
+            description: Additional data for the transfer [(more info)](https://rarimo.gitlab.io/docs/docs/overview/bundling)
+            example: "foobar"
+          bundle_salt:
+            type: string
+            description: Salt for the transfer's bundle [(more info)](https://rarimo.gitlab.io/docs/docs/overview/bundling)
+          created_at:
+            type: string
+            format: time.Time
+            description: Time (UTC) of the transfer creation, RFC3339 format
+            example: "2021-08-12T12:00:00Z"
+      relationships:
+        type: object
+        required: [creator]
+        properties:
+          token:
+            type: object
+            required: [data]
+            properties:
+              data:
+                $ref: '#/components/schemas/TokenKey'
+          tx:
+            type: object
+            required: [data]
+            properties:
+              data:
+                $ref: '#/components/schemas/TransactionKey'
+          creator:
+            type: object
+            description: User who created the transfer (rarimo account)
+            required: [data]
+            properties:
+              data:
+                $ref: '#/components/schemas/AccountKey'
+          receiver:
+            type: object
+            description: User who will receive the transfer (external account)
+            required: [data]
+            properties:
+              data:
+                $ref: '#/components/schemas/AccountExternalIDKey'

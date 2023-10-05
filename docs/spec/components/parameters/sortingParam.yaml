@@ -1,0 +1,9 @@
+in: query
+name: 'sort'
+required: false
+example: "-time"
+schema:
+  type: string
+  description: >-
+    Order of records on the page. Format is `[-]{columnName}`; minus sign makes the order descending.
+    Each endpoint specifies its own set of columns to sort data by.

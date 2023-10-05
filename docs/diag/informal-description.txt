@@ -1,0 +1,45 @@
+5. Maintaining world state
+
+In case of interacting with the particular chain we assume that it is 
+possible to fetch blocks in sequenced order (from lower block_num to higher).
+
+This makes us able to build chain of handlers that's intended to construct and 
+update the current state of the system (further referred to as world state or WS).
+
+WS is the cumulative state of all the past events occured on chain. It is updated on
+each event's arrival by the supervising submodules.
+
+Supervising submodules are divided into two subgroups:
+  
+  - base;
+  - specific.
+
+Base supervising submodules handle every particular event in every particular block
+and save them in ordered manner into the Elasticsearch storage.
+
+Base supervising submodules are responsible, as well, for updating pointers to 
+particular important events that will be handled in future by specific supervising
+submudules. This approach guarantees that specific supervising submodules handle every particular
+event only after it has been indexed from the chain and, therefore, consistency and integrity
+of the WS in every particular aspect of the system (user's balances, tokens' ownership etc.) is preserved.
+
+Such a storing system allows to build specific supervising submodules based only on the implementation of data model in the service that gives us three major advantages:
+
+  - independence from contract implementation;
+  - each specific submodule handes only that events that are only intended to it;
+  - speed of handling ES storage is higher than fetching them from chain. (do we need any benchmark here?)
+
+There is three base supervising submodules that form chain of responsibility:
+
+  - blocks indexer
+        fetches blocks from the chain, unpacks events from transactions and saves them into ES storage
+  - cursors updater (should be configurable on the fly)
+        checks whethere there is any events that are interesting for any of specific supervising submodules
+        // requirement about the configurability may be out of the scope of the mvp version
+  - cursors catchupper  // also may be out of the scope of the mvp version
+        helps to not restart cursor updater in case new specific supervising submodule is added
+
+Specific supervising modules should be construced as an events reader + events handler:
+
+  - events reader is responsible for reading events that are interesting for the particular submodule;
+  - events handler is responsible for updating the WS according the event arrived.

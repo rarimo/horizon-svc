@@ -1,0 +1,11 @@
+type: object
+required:
+  - value
+  - name
+properties:
+  value:
+    type: integer
+    example: 1
+  name:
+    type: string
+    example: General

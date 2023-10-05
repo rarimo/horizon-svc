@@ -1,0 +1,50 @@
+allOf:
+  - $ref: '#/components/schemas/ChainKey'
+  - type: object
+    required:
+      - attributes
+      - relationships
+    properties:
+      attributes:
+        type: object
+        required:
+          - name
+          - bridge_contract
+          - chain_type
+          - chain_params
+        properties:
+          name:
+            type: string
+          icon:
+            type: string
+            description: Link to network icon
+            example: https://some.storage.com/image.png
+          bridge_contract:
+            type: string
+            description: Address of bridge contract in specific chain
+          chain_type:
+            type: integer
+            format: tokenmanager.NetworkType
+            description: |
+              Type of blockchain by supported wallets, APIs, etc.
+              
+              Enum:
+              - `evm` - `0`
+              - `solana` - `1`
+              - `near` - `2`
+              - `other` - `3`
+          chain_params:
+            type: object
+            format: json.RawMessage
+      relationships:
+        type: object
+        required:
+          - items
+        properties:
+          items:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ItemKey'
