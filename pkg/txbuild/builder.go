@@ -55,9 +55,8 @@ func NewMultiBuilder(cfg config.Config) *MultiBuilder {
 		}
 
 		contracts[net.Name] = bridgeConfig{
-			contract: bridgeParams.Contract,
-			//adminPublicKey: bridgeParams.AdminPublicKey,
-			// TODO: ADD ADMIN PUBLIC KEY THERE
+			contract:       bridgeParams.Contract,
+			adminPublicKey: bridgeParams.Admin,
 		}
 	}
 
