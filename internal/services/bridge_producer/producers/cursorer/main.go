@@ -1,4 +1,4 @@
-package utils
+package cursorer
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/types"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-	"strconv"
 	"time"
 )
 
@@ -28,18 +27,18 @@ type cursorer struct {
 	createdAt     time.Time
 }
 
-func (c *cursorer) GetStartCursor(ctx context.Context) (int64, error) {
+func (c *cursorer) GetStartCursor(ctx context.Context) (*types.Cursor, error) {
 	startCursorKV, err := c.getStartCursorKv(ctx)
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to get cursor", logan.F{
+		return nil, errors.Wrap(err, "failed to get cursor", logan.F{
 			"cursor_name": c.cursorKey,
 		})
 	}
 
-	return mustParseInt(startCursorKV.Value), nil
+	return types.NewCursor(startCursorKV.Value), nil
 }
 
-func (c *cursorer) SetStartCursor(ctx context.Context, value int64) error {
+func (c *cursorer) SetStartCursor(ctx context.Context, value *types.Cursor) error {
 	if c.createdAt.IsZero() {
 		_, err := c.getStartCursorKv(ctx)
 		if err != nil {
@@ -51,7 +50,7 @@ func (c *cursorer) SetStartCursor(ctx context.Context, value int64) error {
 
 	err := c.kv.Upsert(ctx, data.KeyValue{
 		Key:       c.cursorKey,
-		Value:     strconv.FormatInt(value, 10),
+		Value:     value.String(),
 		CreatedAt: c.createdAt,
 		UpdatedAt: time.Now(),
 	})
@@ -78,7 +77,7 @@ func (c *cursorer) getStartCursorKv(ctx context.Context) (*data.KeyValue, error)
 
 		startCursorKV = &data.KeyValue{
 			Key:       c.cursorKey,
-			Value:     "1",
+			Value:     "",
 			CreatedAt: now,
 			UpdatedAt: now,
 		}
@@ -88,28 +87,9 @@ func (c *cursorer) getStartCursorKv(ctx context.Context) (*data.KeyValue, error)
 		}
 	}
 
-	_, err = strconv.ParseInt(startCursorKV.Value, 10, 64)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse cursor", logan.F{
-			"cursor_name": c.cursorKey,
-			"raw":         startCursorKV.Value,
-		})
-	}
-
 	if c.createdAt.IsZero() {
 		c.createdAt = startCursorKV.CreatedAt
 	}
 
 	return startCursorKV, nil
-}
-
-func mustParseInt(val string) int64 {
-	res, err := strconv.ParseInt(val, 10, 64)
-	if err != nil {
-		panic(errors.Wrap(err, "failed to parse int64", logan.F{
-			"value": val,
-		}))
-	}
-
-	return res
 }

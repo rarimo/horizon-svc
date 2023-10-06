@@ -39,8 +39,7 @@ func New(
 	chain data.Chain,
 	kv *redis.KeyValueProvider,
 	publisher services.QPublisher,
-	cursorKey,
-	contractAddress string,
+	cursorKey string,
 ) types.Producer {
 	f := logan.F{
 		"chain": chain.Name,
@@ -62,7 +61,7 @@ func New(
 		initialCursor = strconv.FormatUint(lastBlockHeight, 10)
 	}
 
-	contract := common.HexToAddress(contractAddress)
+	contract := common.HexToAddress(chain.BridgeContract)
 
 	handlers := []Handler{
 		newNativeHandler(log, cli, chain.Name, kv, publisher, contract, cursorKey, initialCursor),

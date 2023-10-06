@@ -2,7 +2,6 @@ package bridge_producer
 
 import (
 	"context"
-	"fmt"
 	"github.com/rarimo/horizon-svc/internal/config"
 	"github.com/rarimo/horizon-svc/internal/data/redis"
 	"github.com/rarimo/horizon-svc/internal/services"
@@ -11,8 +10,8 @@ import (
 	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/producers/rarimo"
 	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/producers/solana"
 	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/types"
+	tokenmanager "github.com/rarimo/rarimo-core/x/tokenmanager/types"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-	tokenmanager "gitlab.com/rarimo/rarimo-core/x/tokenmanager/types"
 )
 
 func newProducerer(cfg config.Config, publisher services.QPublisher) types.Producerer {
@@ -42,18 +41,13 @@ func newProducerer(cfg config.Config, publisher services.QPublisher) types.Produ
 		log := cfg.Log().WithField("who", chain.Name+"_bridge_events_producer")
 		conf := cfg.BridgeProducer().ChainConfigByID(chain.ID)
 
-		contractAddress := contracts[chain.Name]
-		if contractAddress == "" {
-			panic(fmt.Errorf("contract address not found for chain %s", chain.Name))
-		}
-
 		switch chain.Type {
 		case tokenmanager.NetworkType_EVM:
-			repo.producers[chain.Name] = evm.New(conf, log, chain, kv, publisher, cursorKey, contractAddress)
+			repo.producers[chain.Name] = evm.New(conf, log, chain, kv, publisher, cursorKey)
 		case tokenmanager.NetworkType_Solana:
-			repo.producers[chain.Name] = solana.New(cfg.Log(), chain, kv, publisher)
+			repo.producers[chain.Name] = solana.New(conf, log, chain, kv, publisher, cursorKey)
 		case tokenmanager.NetworkType_Near:
-			repo.producers[chain.Name] = near.New(conf, log, chain, kv, publisher, cursorKey, contractAddress)
+			repo.producers[chain.Name] = near.New(conf, log, chain, kv, publisher, cfg.Near(), cursorKey)
 		case tokenmanager.NetworkType_Other: // FIXME: do we need another type for the rarimo chain?
 			repo.producers[chain.Name] = rarimo.New(cfg.Log(), chain, kv, publisher)
 		default:

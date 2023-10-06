@@ -2,13 +2,14 @@ package evm
 
 import (
 	"context"
+	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	gobind "github.com/rarimo/evm-bridge-contracts/gobind/contracts/interfaces/handlers"
 	"github.com/rarimo/horizon-svc/internal/data/redis"
 	"github.com/rarimo/horizon-svc/internal/services"
-	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/producers/utils"
+	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/producers/cursorer"
 	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/types"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
@@ -36,7 +37,7 @@ func newERC1155Handler(log *logan.Entry, cli *ethclient.Client, chain string, kv
 		cli,
 		chain,
 		handler,
-		utils.NewCursorer(log, kv, cursorKey+"_"+HandlerERC1155, initialCursor),
+		cursorer.NewCursorer(log, kv, cursorKey+"_"+HandlerERC1155, initialCursor),
 		publisher,
 	}
 }
@@ -51,8 +52,10 @@ func (h *erc1155Handler) Run(ctx context.Context) error {
 		return errors.Wrap(err, "failed to get start cursor")
 	}
 
+	h.log.Info(fmt.Sprintf("Catchupping history from %s", start.Value))
+
 	iter, err := h.handler.FilterWithdrawnERC1155(&bind.FilterOpts{
-		Start:   uint64(start),
+		Start:   start.Uint(),
 		Context: ctx,
 	})
 	if err != nil {
@@ -85,7 +88,7 @@ func (h *erc1155Handler) Run(ctx context.Context) error {
 			return errors.Wrap(err, "failed to publish message")
 		}
 
-		if err = h.cursorer.SetStartCursor(ctx, int64(e.Raw.BlockNumber)); err != nil {
+		if err = h.cursorer.SetStartCursor(ctx, start.SetUint64(e.Raw.BlockNumber)); err != nil {
 			return errors.Wrap(err, "failed to set cursor")
 		}
 	}

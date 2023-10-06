@@ -3,12 +3,13 @@ package near
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/rarimo/horizon-svc/internal/config"
 	"github.com/rarimo/horizon-svc/internal/data"
 	"github.com/rarimo/horizon-svc/internal/data/redis"
 	"github.com/rarimo/horizon-svc/internal/services"
 	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/producers"
-	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/producers/utils"
+	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/producers/cursorer"
 	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/types"
 	"github.com/rarimo/horizon-svc/pkg/msgs"
 	"github.com/rarimo/near-go/common"
@@ -33,7 +34,6 @@ type nearProducer struct {
 	cfg       *config.BridgeProducerChainConfig
 	publisher services.QPublisher
 	cursorer  types.Cursorer
-	contract  common.AccountID
 }
 
 func New(
@@ -43,8 +43,7 @@ func New(
 	kv *redis.KeyValueProvider,
 	publisher services.QPublisher,
 	near nearprovider.Provider,
-	cursorKey,
-	contractAddress string,
+	cursorKey string,
 ) types.Producer {
 	f := logan.F{
 		"chain": chain.Name,
@@ -62,13 +61,12 @@ func New(
 	}
 
 	return &nearProducer{
-		log.WithField("who", chain.Name+"_near_bridge_events_producer"),
+		log,
 		chain,
 		near,
 		cfg,
 		publisher,
-		utils.NewCursorer(log, kv, cursorKey+"_near", initialCursor),
-		contractAddress,
+		cursorer.NewCursorer(log, kv, cursorKey, initialCursor),
 	}
 }
 
@@ -77,6 +75,8 @@ func (p *nearProducer) Run(ctx context.Context) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to get start cursor")
 	}
+
+	p.log.Info(fmt.Sprintf("Catchupping history from %s", start.Value))
 
 	batchSize := DefaultBatchSize
 	if p.cfg != nil && p.cfg.BatchSize > 0 {
@@ -89,13 +89,13 @@ func (p *nearProducer) Run(ctx context.Context) error {
 		}
 
 		f := logan.F{
-			"cursor": start,
+			"cursor": start.Value,
 		}
 
 		p.log = p.log.WithFields(f)
 		p.log.Info("Starting iteration")
 
-		blocks, err := p.near.ListBlocks(ctx, batchSize, uint64(start))
+		blocks, err := p.near.ListBlocks(ctx, batchSize, start.Uint())
 		if err != nil {
 			return errors.Wrap(err, "failed to fetch blocks", f)
 		}
@@ -118,7 +118,7 @@ func (p *nearProducer) Run(ctx context.Context) error {
 	}
 }
 
-func (p *nearProducer) processBlocks(ctx context.Context, blocks []common.BlockHeight, cursor int64) (int64, error) {
+func (p *nearProducer) processBlocks(ctx context.Context, blocks []common.BlockHeight, cursor *types.Cursor) (*types.Cursor, error) {
 	fromBlock := cursor
 
 	for _, block := range blocks {
@@ -128,19 +128,19 @@ func (p *nearProducer) processBlocks(ctx context.Context, blocks []common.BlockH
 
 		msg, err := p.near.GetMessage(ctx, block)
 		if err != nil {
-			return cursor, errors.Wrap(err, "failed to fetch message", f)
+			return nil, errors.Wrap(err, "failed to fetch message", f)
 		}
 
 		err = p.processShards(ctx, block, msg.Shards)
 		if err != nil {
-			return cursor, errors.Wrap(err, "failed to extract events from shards", f)
+			return nil, errors.Wrap(err, "failed to extract events from shards", f)
 		}
 
-		fromBlock = int64(block) + 1
+		fromBlock = fromBlock.SetInt64(int64(block) + 1)
 
 		err = p.cursorer.SetStartCursor(ctx, fromBlock)
 		if err != nil {
-			return cursor, errors.Wrap(err, "failed to set cursor")
+			return nil, errors.Wrap(err, "failed to set cursor")
 		}
 	}
 
@@ -194,7 +194,7 @@ func (p *nearProducer) processReceiptsOutcomes(ctx context.Context, height commo
 	messages := make([]msgs.Message, 0)
 
 	for _, receiptOutcome := range tx.FinalExecutionOutcomeView.ReceiptsOutcome {
-		if receiptOutcome.Outcome.ExecutorID != p.contract {
+		if receiptOutcome.Outcome.ExecutorID != p.chain.BridgeContract {
 			continue
 		}
 
