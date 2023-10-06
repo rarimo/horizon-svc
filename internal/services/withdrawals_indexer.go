@@ -6,8 +6,8 @@ import (
 	"github.com/rarimo/horizon-svc/internal/config"
 	"github.com/rarimo/horizon-svc/internal/data"
 	"github.com/rarimo/horizon-svc/pkg/msgs"
+	"github.com/rarimo/xo/types/xo"
 	"gitlab.com/distributed_lab/logan/v3"
-	"gitlab.com/rarimo/xo/types/xo"
 	"time"
 )
 
@@ -34,7 +34,7 @@ func (p *withdrawalsIndexer) Handle(ctx context.Context, msgs []msgs.Message) er
 	for _, msg := range msgs {
 		wmsg := msg.MustWithdrawalMessage()
 		withdrawals = append(withdrawals, data.Withdrawal{
-			Hash: []byte(wmsg.Hash),
+			Hash: wmsg.Hash.Bytes(),
 			BlockHeight: sql.NullInt64{
 				Int64: wmsg.BlockHeight,
 				Valid: true,

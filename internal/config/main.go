@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/rarimo/near-go/nearprovider"
 	"net/http"
 
 	"github.com/rarimo/horizon-svc/internal/data/cachedpg"
@@ -29,6 +30,7 @@ type Config interface {
 	ipfs.IPFSer
 	rd.Rediser
 	mem.Chainer
+	nearprovider.Nearer
 
 	NewStorage() data.Storage
 	CachedStorage() data.Storage
@@ -65,6 +67,7 @@ type config struct {
 	ipfs.IPFSer
 	rd.Rediser
 	mem.Chainer
+	nearprovider.Nearer
 
 	chainGateway         comfig.Once
 	chains               comfig.Once
@@ -91,15 +94,17 @@ type config struct {
 }
 
 func New(getter kv.Getter) Config {
+	logger := comfig.NewLogger(getter, comfig.LoggerOpts{})
 	return &config{
 		getter:     getter,
+		Logger:     logger,
 		Databaser:  pgdb.NewDatabaser(getter),
 		Copuser:    copus.NewCopuser(getter),
 		Listenerer: comfig.NewListenerer(getter),
-		Logger:     comfig.NewLogger(getter, comfig.LoggerOpts{}),
 		Rediser:    rd.NewRediser(getter),
 		IPFSer:     ipfs.NewIPFSer(getter),
 		Chainer:    mem.NewChainer(getter),
+		Nearer:     nearprovider.NewNearer(getter, logger.Log()),
 	}
 }
 

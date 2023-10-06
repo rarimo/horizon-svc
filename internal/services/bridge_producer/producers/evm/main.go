@@ -65,10 +65,10 @@ func New(
 	contract := common.HexToAddress(contractAddress)
 
 	handlers := []Handler{
-		newNativeHandler(log, cli, kv, publisher, contract, cursorKey, initialCursor),
-		newERC20Handler(log, cli, kv, publisher, contract, cursorKey, initialCursor),
-		newERC721Handler(log, cli, kv, publisher, contract, cursorKey, initialCursor),
-		newERC1155Handler(log, cli, kv, publisher, contract, cursorKey, initialCursor),
+		newNativeHandler(log, cli, chain.Name, kv, publisher, contract, cursorKey, initialCursor),
+		newERC20Handler(log, cli, chain.Name, kv, publisher, contract, cursorKey, initialCursor),
+		newERC721Handler(log, cli, chain.Name, kv, publisher, contract, cursorKey, initialCursor),
+		newERC1155Handler(log, cli, chain.Name, kv, publisher, contract, cursorKey, initialCursor),
 	}
 
 	return &evmProducer{

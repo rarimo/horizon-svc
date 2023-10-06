@@ -5,24 +5,25 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+	gobind "github.com/rarimo/evm-bridge-contracts/gobind/contracts/interfaces/handlers"
 	"github.com/rarimo/horizon-svc/internal/data/redis"
 	"github.com/rarimo/horizon-svc/internal/services"
 	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/producers/utils"
 	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/types"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-	gobind "gitlab.com/rarimo/contracts/evm-bridge/gobind/contracts/interfaces/handlers"
 )
 
 type erc1155Handler struct {
 	log       *logan.Entry
 	cli       *ethclient.Client
+	chain     string
 	handler   *gobind.IERC1155Handler
 	cursorer  types.Cursorer
 	publisher services.QPublisher
 }
 
-func newERC1155Handler(log *logan.Entry, cli *ethclient.Client, kv *redis.KeyValueProvider, publisher services.QPublisher, contractAddress common.Address, cursorKey, initialCursor string) Handler {
+func newERC1155Handler(log *logan.Entry, cli *ethclient.Client, chain string, kv *redis.KeyValueProvider, publisher services.QPublisher, contractAddress common.Address, cursorKey, initialCursor string) Handler {
 	handler, err := gobind.NewIERC1155Handler(contractAddress, cli)
 	if err != nil {
 		panic(errors.Wrap(err, "failed to init handler", logan.F{
@@ -33,6 +34,7 @@ func newERC1155Handler(log *logan.Entry, cli *ethclient.Client, kv *redis.KeyVal
 	return &erc1155Handler{
 		log.WithField("handler", HandlerERC1155),
 		cli,
+		chain,
 		handler,
 		utils.NewCursorer(log, kv, cursorKey+"_"+HandlerERC1155, initialCursor),
 		publisher,
@@ -73,7 +75,7 @@ func (h *erc1155Handler) Run(ctx context.Context) error {
 			"log_index": e.Raw.Index,
 		}).Debug("got event")
 
-		msg, err := logToWithdrawal(ctx, h.cli, e.Raw)
+		msg, err := logToWithdrawal(ctx, h.cli, e.Raw, h.chain)
 		if err != nil {
 			return errors.Wrap(err, "failed to parse log")
 		}
