@@ -18,7 +18,6 @@ import (
 	"github.com/rarimo/solana-program-go/contracts/bridge"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-	"strconv"
 )
 
 const (
@@ -41,17 +40,16 @@ func New(cfg *config.BridgeProducerChainConfig, log *logan.Entry, chain data.Cha
 	}
 
 	cli := rpc.New(chain.Rpc)
+	programId := solana.MustPublicKeyFromBase58(chain.BridgeContract)
 
 	initialCursor := producers.DefaultInitialCursor
 	if cfg != nil && cfg.SkipCatchup {
-		lastBlock, err := cli.GetBlockHeight(context.Background(), rpc.CommitmentFinalized)
+		signatures, err := cli.GetSignaturesForAddress(context.Background(), programId)
 		if err != nil {
-			panic(errors.Wrap(err, "failed to get last block", f))
+			panic(errors.Wrap(err, "failed to get last signatures", f))
 		}
 
-		// TODO: set initial as last signature from the recent block
-
-		initialCursor = strconv.FormatUint(lastBlock, 10)
+		initialCursor = signatures[len(signatures)-1].Signature.String()
 	}
 
 	return &solanaProducer{
@@ -60,7 +58,7 @@ func New(cfg *config.BridgeProducerChainConfig, log *logan.Entry, chain data.Cha
 		cli,
 		cursorer.NewCursorer(log, kv, cursorKey, initialCursor),
 		publisher,
-		solana.MustPublicKeyFromBase58(chain.BridgeContract),
+		programId,
 	}
 }
 
@@ -78,8 +76,7 @@ func (p *solanaProducer) Run(ctx context.Context) error {
 		}
 
 		signatures, err := p.cli.GetSignaturesForAddressWithOpts(ctx, p.programId, &rpc.GetSignaturesForAddressOpts{
-			Before:     start.Signature(),
-			Commitment: rpc.CommitmentFinalized,
+			Before: start.Signature(),
 		})
 		if err != nil {
 			return errors.Wrap(err, "failed to get signatures")
@@ -119,7 +116,6 @@ func (p *solanaProducer) processTransaction(ctx context.Context, sig solana.Sign
 		return errors.Wrap(err, "error marshaling transaction")
 	}
 
-	// TODO: check if this is the right way to get the block
 	block, err := p.cli.GetBlockWithOpts(ctx, out.Slot, &rpc.GetBlockOpts{
 		TransactionDetails: rpc.TransactionDetailsNone,
 		Commitment:         rpc.CommitmentFinalized,
