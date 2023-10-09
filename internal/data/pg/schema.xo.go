@@ -7,9 +7,9 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/rarimo/horizon-svc/internal/data"
 	"gitlab.com/distributed_lab/kit/pgdb"
 	"gitlab.com/distributed_lab/logan/v3/errors"
-	"github.com/rarimo/horizon-svc/internal/data"
 )
 
 // Storage is the helper struct for database operations
@@ -1090,18 +1090,18 @@ func (s Storage) WithdrawalQ() data.WithdrawalQ {
 	return NewWithdrawalQ(s.DB())
 }
 
-var colsWithdrawal = `hash, block_height, tx_result, success, created_at`
+var colsWithdrawal = `origin, hash, success, created_at`
 
 // InsertCtx inserts a Withdrawal to the database.
 func (q WithdrawalQ) InsertCtx(ctx context.Context, w *data.Withdrawal) error {
 	// sql insert query, primary key must be provided
 	sqlstr := `INSERT INTO public.withdrawals (` +
-		`hash, block_height, tx_result, success, created_at` +
+		`origin, hash, success, created_at` +
 		`) VALUES (` +
-		`$1, $2, $3, $4, $5` +
+		`$1, $2, $3, $4` +
 		`)`
 	// run
-	err := q.db.ExecRawContext(ctx, sqlstr, w.Hash, w.BlockHeight, w.TxResult, w.Success, w.CreatedAt)
+	err := q.db.ExecRawContext(ctx, sqlstr, w.Origin, w.Hash, w.Success, w.CreatedAt)
 	return errors.Wrap(err, "failed to execute insert query")
 }
 
@@ -1114,10 +1114,10 @@ func (q WithdrawalQ) Insert(w *data.Withdrawal) error {
 func (q WithdrawalQ) UpdateCtx(ctx context.Context, w *data.Withdrawal) error {
 	// update with composite primary key
 	sqlstr := `UPDATE public.withdrawals SET ` +
-		`block_height = $1, tx_result = $2, success = $3 ` +
-		`WHERE hash = $4`
+		`hash = $1, success = $2 ` +
+		`WHERE origin = $3`
 	// run
-	err := q.db.ExecRawContext(ctx, sqlstr, w.BlockHeight, w.TxResult, w.Success, w.Hash)
+	err := q.db.ExecRawContext(ctx, sqlstr, w.Hash, w.Success, w.Origin)
 	return errors.Wrap(err, "failed to execute update")
 }
 
@@ -1130,15 +1130,15 @@ func (q WithdrawalQ) Update(w *data.Withdrawal) error {
 func (q WithdrawalQ) UpsertCtx(ctx context.Context, w *data.Withdrawal) error {
 	// upsert
 	sqlstr := `INSERT INTO public.withdrawals (` +
-		`hash, block_height, tx_result, success, created_at` +
+		`origin, hash, success, created_at` +
 		`) VALUES (` +
-		`$1, $2, $3, $4, $5` +
+		`$1, $2, $3, $4` +
 		`)` +
-		` ON CONFLICT (hash) DO ` +
+		` ON CONFLICT (origin) DO ` +
 		`UPDATE SET ` +
-		`block_height = EXCLUDED.block_height, tx_result = EXCLUDED.tx_result, success = EXCLUDED.success `
+		`hash = EXCLUDED.hash, success = EXCLUDED.success `
 	// run
-	if err := q.db.ExecRawContext(ctx, sqlstr, w.Hash, w.BlockHeight, w.TxResult, w.Success, w.CreatedAt); err != nil {
+	if err := q.db.ExecRawContext(ctx, sqlstr, w.Origin, w.Hash, w.Success, w.CreatedAt); err != nil {
 		return errors.Wrap(err, "failed to execute upsert stmt")
 	}
 	return nil
@@ -1153,9 +1153,9 @@ func (q WithdrawalQ) Upsert(w *data.Withdrawal) error {
 func (q WithdrawalQ) DeleteCtx(ctx context.Context, w *data.Withdrawal) error {
 	// delete with single primary key
 	sqlstr := `DELETE FROM public.withdrawals ` +
-		`WHERE hash = $1`
+		`WHERE origin = $1`
 	// run
-	if err := q.db.ExecRawContext(ctx, sqlstr, w.Hash); err != nil {
+	if err := q.db.ExecRawContext(ctx, sqlstr, w.Origin); err != nil {
 		return errors.Wrap(err, "failed to exec delete stmt")
 	}
 	return nil
@@ -1951,21 +1951,21 @@ func (q VoteQ) VotesByTransferIndex(transferIndex []byte, isForUpdate bool) ([]d
 	return q.VotesByTransferIndexCtx(context.Background(), transferIndex, isForUpdate)
 }
 
-// WithdrawalByHashCtx retrieves a row from 'public.withdrawals' as a Withdrawal.
+// WithdrawalByOriginCtx retrieves a row from 'public.withdrawals' as a Withdrawal.
 //
 // Generated from index 'withdrawals_pkey'.
-func (q WithdrawalQ) WithdrawalByHashCtx(ctx context.Context, hash []byte, isForUpdate bool) (*data.Withdrawal, error) {
+func (q WithdrawalQ) WithdrawalByOriginCtx(ctx context.Context, origin []byte, isForUpdate bool) (*data.Withdrawal, error) {
 	// query
 	sqlstr := `SELECT ` +
-		`hash, block_height, tx_result, success, created_at ` +
+		`origin, hash, success, created_at ` +
 		`FROM public.withdrawals ` +
-		`WHERE hash = $1`
+		`WHERE origin = $1`
 	// run
 	if isForUpdate {
 		sqlstr += " for update"
 	}
 	var res data.Withdrawal
-	err := q.db.GetRawContext(ctx, &res, sqlstr, hash)
+	err := q.db.GetRawContext(ctx, &res, sqlstr, origin)
 	if err != nil {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, nil
@@ -1977,9 +1977,9 @@ func (q WithdrawalQ) WithdrawalByHashCtx(ctx context.Context, hash []byte, isFor
 	return &res, nil
 }
 
-// WithdrawalByHash retrieves a row from 'public.withdrawals' as a Withdrawal.
+// WithdrawalByOrigin retrieves a row from 'public.withdrawals' as a Withdrawal.
 //
 // Generated from index 'withdrawals_pkey'.
-func (q WithdrawalQ) WithdrawalByHash(hash []byte, isForUpdate bool) (*data.Withdrawal, error) {
-	return q.WithdrawalByHashCtx(context.Background(), hash, isForUpdate)
+func (q WithdrawalQ) WithdrawalByOrigin(origin []byte, isForUpdate bool) (*data.Withdrawal, error) {
+	return q.WithdrawalByOriginCtx(context.Background(), origin, isForUpdate)
 }

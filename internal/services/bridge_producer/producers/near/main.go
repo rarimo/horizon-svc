@@ -204,16 +204,10 @@ func (p *nearProducer) processReceiptsOutcomes(ctx context.Context, height commo
 				continue
 			}
 
-			txResult, err := json.Marshal(tx)
-			if err != nil {
-				return errors.Wrap(err, "failed to marshal tx result")
-			}
-
 			messages = append(messages, msgs.WithdrawalMsg{
-				Hash:        data.FormatWithdrawalID(p.chain.Name, tx.Transaction.Hash.String()),
-				BlockHeight: int64(height),
-				TxResult:    txResult,
-				Success:     tx.Status.Failure == nil,
+				Origin:  event.Data[0].Origin,
+				Hash:    tx.Transaction.Hash.String(),
+				Success: tx.Status.Failure == nil,
 			}.Message())
 		}
 	}

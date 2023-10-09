@@ -78,7 +78,7 @@ func (h *nativeHandler) Run(ctx context.Context) error {
 			"log_index": e.Raw.Index,
 		}).Debug("got event")
 
-		msg, err := logToWithdrawal(ctx, h.cli, e.Raw, h.chain)
+		msg, err := logToWithdrawal(ctx, h.cli, e.Raw, e.OriginHash, h.chain)
 		if err != nil {
 			return errors.Wrap(err, "failed to parse log")
 		}

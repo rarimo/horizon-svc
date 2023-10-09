@@ -10,9 +10,8 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
 
-type AccountID string    // {networkName}:{accountAddress}
-type PublicKey string    // {networkName}:{publicKey}
-type WithdrawalID string // {networkName}:{withdrawalTransactionHash}
+type AccountID string // {networkName}:{accountAddress}
+type PublicKey string // {networkName}:{publicKey}
 
 func FormatPublicKey(network string, publicKey []byte) PublicKey {
 	return PublicKey(fmt.Sprintf("%s:%s", network, hex.EncodeToString(publicKey)))
@@ -20,10 +19,6 @@ func FormatPublicKey(network string, publicKey []byte) PublicKey {
 
 func FormatAccountID(network string, accountID []byte) AccountID {
 	return AccountID(fmt.Sprintf("%s:%s", network, hex.EncodeToString(accountID)))
-}
-
-func FormatWithdrawalID(network string, withdrawalID string) WithdrawalID {
-	return WithdrawalID(fmt.Sprintf("%s:%s", network, withdrawalID))
 }
 
 func DecodePublicKey(raw PublicKey) (string, []byte, error) {
@@ -36,33 +31,12 @@ func DecodeAccountID(raw AccountID) (string, []byte, error) {
 	return net, keys[0], err
 }
 
-func DecodeWithdrawalID(raw WithdrawalID) (string, string, error) {
-	if raw == "" {
-		return "", "", errors.New("empty")
-	}
-
-	network, withdrawalID, ok := strings.Cut(string(raw), ":")
-	if !ok {
-		return "", "", fmt.Errorf("unexpected identifier format: %s, should be {network}:{identifier}", raw)
-	}
-
-	return network, withdrawalID, nil
-}
-
 func (id AccountID) String() string {
 	return string(id)
 }
 
 func (pk PublicKey) String() string {
 	return string(pk)
-}
-
-func (id WithdrawalID) String() string {
-	return string(id)
-}
-
-func (id WithdrawalID) Bytes() []byte {
-	return []byte(id)
 }
 
 func decodeNetAndIdentifiers(raw string, decodefn func(raw string) ([][]byte, error)) (string, [][]byte, error) {

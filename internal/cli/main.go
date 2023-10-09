@@ -3,7 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
-	"gitlab.com/rarimo/horizon/internal/services/bridge_producer"
+	"github.com/rarimo/horizon-svc/internal/services/bridge_producer"
 	"os"
 	"os/signal"
 	"sync"

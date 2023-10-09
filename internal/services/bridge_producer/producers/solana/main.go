@@ -2,8 +2,8 @@ package solana
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	bin "github.com/gagliardetto/binary"
 	"github.com/olegfomenko/solana-go"
 	"github.com/olegfomenko/solana-go/rpc"
@@ -11,10 +11,10 @@ import (
 	"github.com/rarimo/horizon-svc/internal/data"
 	"github.com/rarimo/horizon-svc/internal/data/redis"
 	"github.com/rarimo/horizon-svc/internal/services"
-	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/producers"
 	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/producers/cursorer"
 	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/types"
-	msgs2 "github.com/rarimo/horizon-svc/pkg/msgs"
+	msgs "github.com/rarimo/horizon-svc/pkg/msgs"
+	"github.com/rarimo/rarimo-core/x/rarimocore/crypto/operation/origin"
 	"github.com/rarimo/solana-program-go/contracts/bridge"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
@@ -42,7 +42,7 @@ func New(cfg *config.BridgeProducerChainConfig, log *logan.Entry, chain data.Cha
 	cli := rpc.New(chain.Rpc)
 	programId := solana.MustPublicKeyFromBase58(chain.BridgeContract)
 
-	initialCursor := producers.DefaultInitialCursor
+	initialCursor := solana.Signature{}.String()
 	if cfg != nil && cfg.SkipCatchup {
 		signatures, err := cli.GetSignaturesForAddress(context.Background(), programId)
 		if err != nil {
@@ -111,32 +111,23 @@ func (p *solanaProducer) processTransaction(ctx context.Context, sig solana.Sign
 		return errors.Wrap(err, "error decoding transaction")
 	}
 
-	result, err := json.Marshal(tx)
-	if err != nil {
-		return errors.Wrap(err, "error marshaling transaction")
-	}
-
-	block, err := p.cli.GetBlockWithOpts(ctx, out.Slot, &rpc.GetBlockOpts{
-		TransactionDetails: rpc.TransactionDetailsNone,
-		Commitment:         rpc.CommitmentFinalized,
-	})
-	if err != nil {
-		return errors.Wrap(err, "error getting block")
-	}
-
-	height := int64(*block.BlockHeight)
 	accounts := tx.Message.AccountKeys
-	msgs := make([]msgs2.Message, 0)
+	messages := make([]msgs.Message, 0)
 
-	for _, instruction := range tx.Message.Instructions {
+	for i, instruction := range tx.Message.Instructions {
 		if accounts[instruction.ProgramIDIndex] == p.programId {
 			switch bridge.Instruction(instruction.Data[DataInstructionCodeIndex]) {
 			case bridge.InstructionWithdrawNative, bridge.InstructionWithdrawFT, bridge.InstructionWithdrawNFT:
-				msgs = append(msgs, msgs2.WithdrawalMsg{
-					Hash:        data.FormatWithdrawalID(p.chain.Name, sig.String()),
-					BlockHeight: height,
-					TxResult:    result,
-					Success:     out.Meta.Err == nil,
+				hash := origin.NewDefaultOriginBuilder().
+					SetTxHash(sig.String()).
+					SetOpId(fmt.Sprint(i)).
+					SetCurrentNetwork(p.chain.Name).
+					Build().
+					GetOrigin()
+				messages = append(messages, msgs.WithdrawalMsg{
+					Origin:  hexutil.Encode(hash[:]),
+					Hash:    sig.String(),
+					Success: out.Meta.Err == nil,
 				}.Message())
 			default:
 				continue
@@ -144,7 +135,7 @@ func (p *solanaProducer) processTransaction(ctx context.Context, sig solana.Sign
 		}
 	}
 
-	if err = p.publisher.PublishMsgs(ctx, msgs...); err != nil {
+	if err = p.publisher.PublishMsgs(ctx, messages...); err != nil {
 		return errors.Wrap(err, "error publishing messages")
 	}
 

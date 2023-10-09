@@ -3,10 +3,10 @@ package services
 import (
 	"context"
 	"database/sql"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/rarimo/horizon-svc/internal/config"
 	"github.com/rarimo/horizon-svc/internal/data"
 	"github.com/rarimo/horizon-svc/pkg/msgs"
-	"github.com/rarimo/xo/types/xo"
 	"gitlab.com/distributed_lab/logan/v3"
 	"time"
 )
@@ -34,15 +34,8 @@ func (p *withdrawalsIndexer) Handle(ctx context.Context, msgs []msgs.Message) er
 	for _, msg := range msgs {
 		wmsg := msg.MustWithdrawalMessage()
 		withdrawals = append(withdrawals, data.Withdrawal{
-			Hash: wmsg.Hash.Bytes(),
-			BlockHeight: sql.NullInt64{
-				Int64: wmsg.BlockHeight,
-				Valid: true,
-			},
-			TxResult: xo.NullJsonb{
-				Jsonb: wmsg.TxResult,
-				Valid: true,
-			},
+			Origin: hexutil.MustDecode(wmsg.Origin),
+			Hash:   wmsg.Hash.Bytes(),
 			Success: sql.NullBool{
 				Bool:  wmsg.Success,
 				Valid: true,
