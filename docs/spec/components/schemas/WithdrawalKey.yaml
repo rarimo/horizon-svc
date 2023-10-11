@@ -9,4 +9,4 @@ properties:
   type:
     type: string
     enum:
-      - transfer-withdrawals
+      - withdrawals

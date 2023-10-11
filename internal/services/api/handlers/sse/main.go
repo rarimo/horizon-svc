@@ -6,12 +6,14 @@ import (
 	"gitlab.com/distributed_lab/logan/v3/errors"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 const (
-	ContentType  = "text/event-stream"
-	CacheControl = "no-cache"
-	Connection   = "keep-alive"
+	ContentType      = "text/event-stream"
+	CacheControl     = "no-cache"
+	Connection       = "keep-alive"
+	SendEventTimeout = 10 * time.Second
 )
 
 func RenderErr(w http.ResponseWriter, errs ...*jsonapi.ErrorObject) {

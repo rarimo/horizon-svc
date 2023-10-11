@@ -1,7 +1,7 @@
 allOf:
-  - $ref: '#/components/schemas/TransferWithdrawalKey'
+  - $ref: '#/components/schemas/WithdrawalKey'
   - type: object
-    description: Particular cross-chain transfer withdrawal details
+    description: Particular withdrawal details
     required: [attributes, relationships]
     properties:
       attributes:
@@ -15,18 +15,18 @@ allOf:
         properties:
           origin:
             type: string
-            description: Identifier of the transfer origin
+            description: Identifier of the withdrawal origin (equals to the transfer origin)
             example: "0x2dd14269b8eeacc005c2e409fb021e8dd73094a5853b84c11600bc109eca8ca9"
           hash:
             type: string
-            description: Identifier of the transfer withdrawal transaction
+            description: Identifier of the withdrawal transaction
           success:
             type: boolean
-            description: Whether the transfer withdrawal was successful
+            description: Whether the withdrawal was successful
           created_at:
             type: string
             format: time.Time
-            description: Time (UTC) of the transfer withdrawal creation, RFC3339 format
+            description: Time (UTC) of the withdrawal creation, RFC3339 format
             example: "2021-08-12T12:00:00Z"
       relationships:
         type: object
@@ -42,7 +42,7 @@ allOf:
           tx:
             type: object
             required: [ data ]
-            description: Transfer deposit transaction
+            description: Deposit transaction
             properties:
               data:
                 $ref: '#/components/schemas/TransactionKey'

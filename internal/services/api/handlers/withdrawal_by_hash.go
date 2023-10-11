@@ -14,15 +14,11 @@ import (
 	"time"
 )
 
-const (
-	RenderTimeout = 10 * time.Second
-)
-
-type transferWithdrawalByHashRequest struct {
+type withdrawalByHashRequest struct {
 	Hash string
 }
 
-func newTransferWithdrawalByHashRequest(r *http.Request) (*transferWithdrawalByHashRequest, error) {
+func newWithdrawalByHashRequest(r *http.Request) (*withdrawalByHashRequest, error) {
 	id := chi.URLParam(r, "hash")
 
 	err := validation.Errors{
@@ -32,23 +28,29 @@ func newTransferWithdrawalByHashRequest(r *http.Request) (*transferWithdrawalByH
 		return nil, errors.Wrap(err, "request is invalid")
 	}
 
-	return &transferWithdrawalByHashRequest{
+	return &withdrawalByHashRequest{
 		Hash: id,
 	}, nil
 }
 
-func TransferWithdrawalByHash(w http.ResponseWriter, r *http.Request) {
-	req, err := newTransferWithdrawalByHashRequest(r)
+func WithdrawalByHash(w http.ResponseWriter, r *http.Request) {
+	req, err := newWithdrawalByHashRequest(r)
 	if err != nil {
 		sse.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
 
-	renderTransferWithdrawal(w, r, req)
+	rendered := renderWithdrawal(w, r, req, true)
+	if rendered {
+		return
+	}
 
 	for {
-		renderTransferWithdrawal(w, r, req)
+		rendered = renderWithdrawal(w, r, req, false)
 		w.(http.Flusher).Flush()
+		if rendered {
+			return
+		}
 
 		// Check for client disconnection using the context
 		select {
@@ -57,29 +59,33 @@ func TransferWithdrawalByHash(w http.ResponseWriter, r *http.Request) {
 		default:
 		}
 
-		time.Sleep(RenderTimeout)
+		time.Sleep(sse.SendEventTimeout)
 	}
 
 }
 
-func renderTransferWithdrawal(w http.ResponseWriter, r *http.Request, req *transferWithdrawalByHashRequest) {
-	withdrawal, err := getTransferWithdrawalByHash(r, req)
+func renderWithdrawal(w http.ResponseWriter, r *http.Request, req *withdrawalByHashRequest, isInitialRender bool) (rendered bool) {
+	withdrawal, err := getWithdrawalByHashResponse(r, req)
 	if err != nil {
-		Log(r).WithError(err).Error("failed to get transfer withdrawal by hash")
+		Log(r).WithError(err).Error("failed to get withdrawal by hash")
 		sse.RenderErr(w, problems.InternalError())
 		return
 	}
 	if withdrawal == nil {
-		Log(r).WithFields(logan.F{"hash": req.Hash}).Error("transfer withdrawal not found")
-		sse.RenderErr(w, problems.NotFound())
+		Log(r).WithFields(logan.F{"hash": req.Hash}).Error("withdrawal not found")
+		if isInitialRender {
+			sse.RenderErr(w, problems.NotFound())
+		}
 	} else {
-		Log(r).WithFields(logan.F{"hash": req.Hash}).Error("found transfer withdrawal")
+		Log(r).WithFields(logan.F{"hash": req.Hash}).Error("found withdrawal")
 		sse.Render(w, withdrawal)
-		return
+		rendered = true
 	}
+
+	return false
 }
 
-func getTransferWithdrawalByHash(r *http.Request, req *transferWithdrawalByHashRequest) (*resources.TransferWithdrawalResponse, error) {
+func getWithdrawalByHashResponse(r *http.Request, req *withdrawalByHashRequest) (*resources.WithdrawalResponse, error) {
 	transfers, err := Storage(r).TransferQ().SelectCtx(r.Context(), data.TransferSelector{
 		ChainTx: &req.Hash,
 	})
@@ -100,19 +106,19 @@ func getTransferWithdrawalByHash(r *http.Request, req *transferWithdrawalByHashR
 		return nil, nil
 	}
 
-	return &resources.TransferWithdrawalResponse{
-		Data: resources.TransferWithdrawal{
+	return &resources.WithdrawalResponse{
+		Data: resources.Withdrawal{
 			Key: resources.Key{
 				ID:   transfer.Origin,
-				Type: resources.TRANSFER_WITHDRAWALS,
+				Type: resources.WITHDRAWALS,
 			},
-			Attributes: resources.TransferWithdrawalAttributes{
+			Attributes: resources.WithdrawalAttributes{
 				CreatedAt: withdrawal.CreatedAt,
 				Hash:      withdrawal.Hash.String,
 				Origin:    transfer.Origin,
 				Success:   withdrawal.Success.Bool,
 			},
-			Relationships: resources.TransferWithdrawalRelationships{
+			Relationships: resources.WithdrawalRelationships{
 				Creator: resources.Relation{
 					Data: &resources.Key{
 						ID:   transfer.Creator.String,

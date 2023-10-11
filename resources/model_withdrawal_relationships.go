@@ -4,7 +4,7 @@
 
 package resources
 
-type TransferWithdrawalRelationships struct {
+type WithdrawalRelationships struct {
 	Creator  Relation  `json:"creator"`
 	Receiver *Relation `json:"receiver,omitempty"`
 	Token    *Relation `json:"token,omitempty"`
