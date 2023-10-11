@@ -136,7 +136,7 @@ CREATE TRIGGER set_updated_at BEFORE UPDATE ON item_chain_mappings FOR EACH ROW 
 
 create table if not exists withdrawals(
     origin bytea primary key,
-    hash bytea,
+    hash text,
     success bool,
     created_at timestamp without time zone not null default now()
 );

@@ -21,5 +21,6 @@ const (
 	TOKENS                   ResourceType = "tokens"
 	TRANSACTIONS             ResourceType = "transactions"
 	TRANSFERS                ResourceType = "transfers"
+	TRANSFER_WITHDRAWALS     ResourceType = "transfer-withdrawals"
 	UNSUBMITTED_TRANSACTIONS ResourceType = "unsubmitted-transactions"
 )

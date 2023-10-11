@@ -13,15 +13,14 @@ func (q WithdrawalQ) InsertBatchCtx(ctx context.Context, withdrawals ...data.Wit
 
 	for _, withdrawal := range withdrawals {
 		stmt = stmt.Values(
+			withdrawal.Origin,
 			withdrawal.Hash,
-			withdrawal.BlockHeight,
-			withdrawal.TxResult,
 			withdrawal.Success,
 			withdrawal.CreatedAt,
 		)
 	}
 
-	stmt = stmt.Suffix("ON CONFLICT(hash) DO NOTHING") // transactions are immutable
+	stmt = stmt.Suffix("ON CONFLICT(origin) DO NOTHING") // withdrawals are immutable
 
 	return q.db.ExecContext(ctx, stmt)
 }

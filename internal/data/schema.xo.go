@@ -188,9 +188,9 @@ type Vote struct {
 
 // Withdrawal represents a row from 'public.withdrawals'.
 type Withdrawal struct {
-	Origin    []byte       `db:"origin" json:"origin" structs:"-"`                  // origin
-	Hash      []byte       `db:"hash" json:"hash" structs:"hash"`                   // hash
-	Success   sql.NullBool `db:"success" json:"success" structs:"success"`          // success
-	CreatedAt time.Time    `db:"created_at" json:"created_at" structs:"created_at"` // created_at
+	Origin    []byte         `db:"origin" json:"origin" structs:"-"`                  // origin
+	Hash      sql.NullString `db:"hash" json:"hash" structs:"hash"`                   // hash
+	Success   sql.NullBool   `db:"success" json:"success" structs:"success"`          // success
+	CreatedAt time.Time      `db:"created_at" json:"created_at" structs:"created_at"` // created_at
 
 }

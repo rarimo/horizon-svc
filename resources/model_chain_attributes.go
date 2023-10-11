@@ -6,7 +6,6 @@ package resources
 
 import (
 	"encoding/json"
-
 	tokenmanager "github.com/rarimo/rarimo-core/x/tokenmanager/types"
 )
 

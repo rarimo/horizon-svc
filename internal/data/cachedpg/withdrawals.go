@@ -21,10 +21,10 @@ func (q *WithdrawalQ) InsertBatchCtx(ctx context.Context, withdrawals ...data.Wi
 	return q.raw.InsertBatchCtx(ctx, withdrawals...)
 }
 
-func (q *WithdrawalQ) WithdrawalByHashCtx(ctx context.Context, hash []byte, _ bool) (*data.Withdrawal, error) {
+func (q *WithdrawalQ) WithdrawalByOriginCtx(ctx context.Context, origin []byte, _ bool) (*data.Withdrawal, error) {
 	var withdrawal *data.Withdrawal
 
-	err := tryGetFromCache(ctx, q.cache, makeWithdrawalCacheHashKey(string(hash)), withdrawal)
+	err := tryGetFromCache(ctx, q.cache, makeWithdrawalCacheOriginKey(string(origin)), withdrawal)
 	if err == nil {
 		q.log.Debug("hit")
 		return withdrawal, nil
@@ -35,7 +35,7 @@ func (q *WithdrawalQ) WithdrawalByHashCtx(ctx context.Context, hash []byte, _ bo
 		q.log.WithError(err).Error("failed to get withdrawal from cache")
 	}
 
-	withdrawal, err = q.raw.WithdrawalByHashCtx(ctx, hash, false)
+	withdrawal, err = q.raw.WithdrawalByOriginCtx(ctx, origin, false)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to select withdrawal")
 	}
@@ -51,7 +51,7 @@ func (q *WithdrawalQ) cacheEveryWithdrawal(ctx context.Context, withdrawals []da
 	for _, withdrawal := range withdrawals {
 		opts := store.WithTags(withdrawalTags([]data.Withdrawal{withdrawal}))
 
-		err := q.cache.Set(ctx, makeWithdrawalCacheHashKey(string(withdrawal.Hash)), withdrawal, opts)
+		err := q.cache.Set(ctx, makeWithdrawalCacheOriginKey(withdrawal.Hash.String), withdrawal, opts)
 		if err != nil {
 			return errors.Wrap(err, "failed to set withdrawal to cache by hash", logan.F{
 				"withdrawal_hash": withdrawal.Hash,
@@ -66,12 +66,12 @@ func withdrawalTags(withdrawals []data.Withdrawal) []string {
 	tags := make([]string, len(withdrawals))
 
 	for i, withdrawal := range withdrawals {
-		tags[i] = makeWithdrawalCacheHashKey(string(withdrawal.Hash))
+		tags[i] = makeWithdrawalCacheOriginKey(withdrawal.Hash.String)
 	}
 
 	return tags
 }
 
-func makeWithdrawalCacheHashKey(withdrawalHash string) string {
+func makeWithdrawalCacheOriginKey(withdrawalHash string) string {
 	return "withdrawal:" + withdrawalHash
 }

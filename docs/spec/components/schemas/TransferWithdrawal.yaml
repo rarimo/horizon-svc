@@ -1,0 +1,62 @@
+allOf:
+  - $ref: '#/components/schemas/TransferWithdrawalKey'
+  - type: object
+    description: Particular cross-chain transfer withdrawal details
+    required: [attributes, relationships]
+    properties:
+      attributes:
+        type: object
+        required: [
+          origin,
+          hash,
+          success,
+          created_at,
+        ]
+        properties:
+          origin:
+            type: string
+            description: Identifier of the transfer origin
+            example: "0x2dd14269b8eeacc005c2e409fb021e8dd73094a5853b84c11600bc109eca8ca9"
+          hash:
+            type: string
+            description: Identifier of the transfer withdrawal transaction
+          success:
+            type: boolean
+            description: Whether the transfer withdrawal was successful
+          created_at:
+            type: string
+            format: time.Time
+            description: Time (UTC) of the transfer withdrawal creation, RFC3339 format
+            example: "2021-08-12T12:00:00Z"
+      relationships:
+        type: object
+        required: [ creator ]
+        properties:
+          token:
+            type: object
+            required: [ data ]
+            description: Token used in the transfer
+            properties:
+              data:
+                $ref: '#/components/schemas/TokenKey'
+          tx:
+            type: object
+            required: [ data ]
+            description: Transfer deposit transaction
+            properties:
+              data:
+                $ref: '#/components/schemas/TransactionKey'
+          creator:
+            type: object
+            description: Transfer creator (rarimo account)
+            required: [ data ]
+            properties:
+              data:
+                $ref: '#/components/schemas/AccountKey'
+          receiver:
+            type: object
+            description: Withdrawal receiver (external account)
+            required: [ data ]
+            properties:
+              data:
+                $ref: '#/components/schemas/AccountExternalIDKey'

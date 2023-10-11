@@ -96,7 +96,7 @@ type SeedQ interface {
 
 type WithdrawalQ interface {
 	InsertBatchCtx(ctx context.Context, withdrawals ...Withdrawal) error
-	WithdrawalByHashCtx(ctx context.Context, hash []byte, isForUpdate bool) (*Withdrawal, error)
+	WithdrawalByOriginCtx(ctx context.Context, origin []byte, isForUpdate bool) (*Withdrawal, error)
 }
 
 type GorpMigrationQ interface {

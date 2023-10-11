@@ -35,7 +35,10 @@ func (p *withdrawalsIndexer) Handle(ctx context.Context, msgs []msgs.Message) er
 		wmsg := msg.MustWithdrawalMessage()
 		withdrawals = append(withdrawals, data.Withdrawal{
 			Origin: hexutil.MustDecode(wmsg.Origin),
-			Hash:   wmsg.Hash.Bytes(),
+			Hash: sql.NullString{
+				String: wmsg.Hash,
+				Valid:  true,
+			},
 			Success: sql.NullBool{
 				Bool:  wmsg.Success,
 				Valid: true,
