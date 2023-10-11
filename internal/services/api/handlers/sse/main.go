@@ -32,11 +32,29 @@ func RenderErr(w http.ResponseWriter, errs ...*jsonapi.ErrorObject) {
 	jsonapi.MarshalErrors(w, errs)
 }
 
-func Render(w http.ResponseWriter, res interface{}) {
+func RenderResponse(w http.ResponseWriter, res interface{}) {
 	setSSEHeaders(w)
 	err := json.NewEncoder(w).Encode(res)
 	if err != nil {
 		panic(errors.Wrap(err, "failed to render response"))
+	}
+}
+
+func ServeEvents(w http.ResponseWriter, r *http.Request, render func() bool) {
+	for {
+		rendered := render()
+		w.(http.Flusher).Flush()
+		if rendered {
+			return
+		}
+
+		// Check for client disconnection using the context
+		select {
+		case <-r.Context().Done():
+			return
+		default:
+			time.Sleep(SendEventTimeout)
+		}
 	}
 }
 

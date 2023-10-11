@@ -11,7 +11,6 @@ import (
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 	"net/http"
-	"time"
 )
 
 type withdrawalByHashRequest struct {
@@ -45,23 +44,9 @@ func WithdrawalByHash(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for {
-		rendered = renderWithdrawal(w, r, req, false)
-		w.(http.Flusher).Flush()
-		if rendered {
-			return
-		}
-
-		// Check for client disconnection using the context
-		select {
-		case <-r.Context().Done():
-			return
-		default:
-		}
-
-		time.Sleep(sse.SendEventTimeout)
-	}
-
+	sse.ServeEvents(w, r, func() bool {
+		return renderWithdrawal(w, r, req, false)
+	})
 }
 
 func renderWithdrawal(w http.ResponseWriter, r *http.Request, req *withdrawalByHashRequest, isInitialRender bool) (rendered bool) {
@@ -78,7 +63,7 @@ func renderWithdrawal(w http.ResponseWriter, r *http.Request, req *withdrawalByH
 		}
 	} else {
 		Log(r).WithFields(logan.F{"hash": req.Hash}).Error("found withdrawal")
-		sse.Render(w, withdrawal)
+		sse.RenderResponse(w, withdrawal)
 		rendered = true
 	}
 
