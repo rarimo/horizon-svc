@@ -1,16 +1,16 @@
 get:
-  summary: Transfer withdrawal by deposit transaction hash
+  summary: Withdrawal by deposit transaction hash
   # security: TODO
   description: >
-    Returns information about the particular transfer withdrawal.
-  operationId: transferWithdrawalByHash
+    Returns information about the particular withdrawal.
+  operationId: withdrawalByHash
   tags:
     - Transfers
   parameters:
     - in: path
-      name: 'id'
+      name: 'hash'
       required: true
-      description: The transaction hash of the transfer
+      description: The transaction hash of the deposit
       schema:
         type: string
         example: 1
@@ -25,7 +25,7 @@ get:
               - data
             properties:
               data:
-                $ref: '#/components/schemas/Transfer'
+                $ref: '#/components/schemas/Withdrawal'
     '400':
       $ref: '#/components/responses/invalidParameter.yaml'
     '404':
