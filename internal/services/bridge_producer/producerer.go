@@ -48,7 +48,7 @@ func newProducerer(cfg config.Config, publisher services.QPublisher) types.Produ
 			repo.producers[chain.Name] = solana.New(conf, log, chain, kv, publisher, cursorKey)
 		case tokenmanager.NetworkType_Near:
 			repo.producers[chain.Name] = near.New(conf, log, chain, kv, publisher, cfg.Near(), cursorKey)
-		case tokenmanager.NetworkType_Other: // FIXME: do we need another type for the rarimo chain?
+		case tokenmanager.NetworkType_Other: // FIXME: change to the rarimo chain type when it will be implemented
 			repo.producers[chain.Name] = rarimo.New(conf, log, chain, kv, publisher, cfg.Tendermint(), cursorKey)
 		default:
 			panic("Unsupported chain type")
