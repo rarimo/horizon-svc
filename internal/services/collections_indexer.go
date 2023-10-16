@@ -155,7 +155,7 @@ func (p *collectionIndexer) handleCollectionCreated(ctx context.Context, msg msg
 }
 
 func (p *collectionIndexer) saveCollection(ctx context.Context, coreCollection tokenmanager.Collection) (*data.Collection, error) {
-	now := time.Now()
+	now := time.Now().UTC()
 	col := data.Collection{
 		Index:     []byte(coreCollection.Index),
 		Metadata:  []byte("{}"),
@@ -182,7 +182,7 @@ func (p *collectionIndexer) saveCollection(ctx context.Context, coreCollection t
 }
 
 func (p *collectionIndexer) saveCollectionData(ctx context.Context, collectionID int64, coreCollectionData []*tokenmanager.CollectionData) error {
-	now := time.Now()
+	now := time.Now().UTC()
 
 	collectionDataBatch := make([]data.CollectionChainMapping, len(coreCollectionData))
 	for i, collectionData := range coreCollectionData {
@@ -281,7 +281,7 @@ func (p *collectionIndexer) handleCollectionDataCreated(ctx context.Context, msg
 		})
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 	err = p.storage.CollectionChainMappingQ().InsertCtx(ctx, &data.CollectionChainMapping{
 		Collection: collection.ID,
 		Network:    network.ID,

@@ -45,7 +45,7 @@ func (p *rejectionIndexer) Handle(ctx context.Context, msgs []msgs.Message) erro
 		rejections = append(rejections, data.Rejection{
 			TransferIndex:     []byte(rmsg.OperationID),
 			RarimoTransaction: data.MustDBHash(rmsg.TransactionHash),
-			CreatedAt:         time.Now(),
+			CreatedAt:         time.Now().UTC(),
 		})
 	}
 

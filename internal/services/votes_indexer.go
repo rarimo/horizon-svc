@@ -41,7 +41,7 @@ func (p *votesIndexer) Handle(ctx context.Context, msgs []msgs.Message) error {
 		vote := data.Vote{
 			TransferIndex:     []byte(vmsg.OperationID),
 			RarimoTransaction: data.MustDBHash(vmsg.TransactionHash),
-			CreatedAt:         time.Now(),
+			CreatedAt:         time.Now().UTC(),
 		}
 
 		switch vmsg.VotingChoice {

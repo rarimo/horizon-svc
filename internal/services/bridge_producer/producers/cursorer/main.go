@@ -52,12 +52,12 @@ func (c *cursorer) SetStartCursor(ctx context.Context, value *types.Cursor) erro
 		Key:       c.cursorKey,
 		Value:     value.String(),
 		CreatedAt: c.createdAt,
-		UpdatedAt: time.Now(),
+		UpdatedAt: time.Now().UTC(),
 	})
 	if err != nil {
 		return errors.Wrap(err, "failed to set cursor", logan.F{
 			"cursor_name": c.cursorKey,
-			"raw":         value,
+			"raw":         value.String(),
 		})
 	}
 
@@ -73,7 +73,7 @@ func (c *cursorer) getStartCursorKv(ctx context.Context) (*data.KeyValue, error)
 	}
 
 	if startCursorKV == nil {
-		now := time.Now()
+		now := time.Now().UTC()
 
 		startCursorKV = &data.KeyValue{
 			Key:       c.cursorKey,

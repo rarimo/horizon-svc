@@ -43,7 +43,7 @@ func (p *approvalIndexer) Handle(ctx context.Context, msgs []msgs.Message) error
 		approvals = append(approvals, data.Approval{
 			TransferIndex:     []byte(amsg.OperationID),
 			RarimoTransaction: data.MustDBHash(amsg.TransactionHash),
-			CreatedAt:         time.Now(),
+			CreatedAt:         time.Now().UTC(),
 		})
 	}
 

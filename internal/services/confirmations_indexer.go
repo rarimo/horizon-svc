@@ -54,7 +54,7 @@ func (p *confirmationsIndexer) Handle(ctx context.Context, msgs []msgs.Message) 
 			confirmations = append(confirmations, data.Confirmation{
 				TransferIndex:     []byte(transferIndex),
 				RarimoTransaction: data.MustDBHash(cmsg.TransactionHash),
-				CreatedAt:         time.Now(),
+				CreatedAt:         time.Now().UTC(),
 			})
 		}
 	}

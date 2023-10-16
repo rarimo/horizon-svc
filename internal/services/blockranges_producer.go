@@ -74,7 +74,7 @@ func (p *blockRangeProducer) produceOnce(ctx context.Context) error {
 	}
 
 	if startCursorKV == nil {
-		now := time.Now()
+		now := time.Now().UTC()
 		startCursorKV = &data.KeyValue{
 			Key:       p.cursorKey,
 			Value:     "1",
@@ -141,7 +141,7 @@ func (p *blockRangeProducer) produceOnce(ctx context.Context) error {
 			Key:       startCursorKV.Key,
 			Value:     strconv.FormatInt(start, 10),
 			CreatedAt: startCursorKV.CreatedAt,
-			UpdatedAt: time.Now(),
+			UpdatedAt: time.Now().UTC(),
 		})
 		if err != nil {
 			p.log.WithFields(logan.F{

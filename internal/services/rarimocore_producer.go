@@ -132,7 +132,7 @@ func (p *rarimoCoreOpProducer) produceMsgs(ctx context.Context, blockRange msgs.
 	}
 
 	if blockRangeCursor == nil {
-		now := time.Now()
+		now := time.Now().UTC()
 		blockRangeCursor = &data.KeyValue{
 			Key:       cursorKey,
 			Value:     "1",
@@ -238,7 +238,7 @@ func (p *rarimoCoreOpProducer) produceMsgs(ctx context.Context, blockRange msgs.
 			Key:       blockRangeCursor.Key,
 			Value:     strconv.Itoa(page),
 			CreatedAt: blockRangeCursor.CreatedAt,
-			UpdatedAt: time.Now(),
+			UpdatedAt: time.Now().UTC(),
 		})
 		if err != nil {
 			return errors.Wrap(err, "failed to update block range cursor", logan.F{

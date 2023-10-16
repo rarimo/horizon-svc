@@ -133,7 +133,7 @@ func (p *itemsIndexer) saveItem(ctx context.Context, coreItem tokenmanager.Item)
 		})
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 	item := data.Item{
 		Index: []byte(coreItem.Index),
 		Collection: sql.NullInt64{
@@ -161,7 +161,7 @@ func (p *itemsIndexer) saveItem(ctx context.Context, coreItem tokenmanager.Item)
 }
 
 func (p *itemsIndexer) saveOnChainItems(ctx context.Context, itemID int64, onChain []*tokenmanager.OnChainItemIndex) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	onChainItemBatch := make([]data.ItemChainMapping, len(onChain))
 	for i, onChainItem := range onChain {
 		network := p.chains.Get(onChainItem.Chain)
@@ -272,7 +272,7 @@ func (p *itemsIndexer) handleOnChainItemCreated(ctx context.Context, msg msgs.It
 		})
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 	err = p.storage.ItemChainMappingQ().InsertCtx(ctx, &data.ItemChainMapping{
 		Item:      item.ID,
 		Network:   network.ID,
