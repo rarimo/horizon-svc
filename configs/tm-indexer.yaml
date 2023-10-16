@@ -1,0 +1,94 @@
+log:
+  disable_sentry: true
+  level: debug
+
+db:
+  url: postgres://horizon:horizon@localhost:5432/horizon?sslmode=disable
+
+block_ranges_producer:
+  runner_name: "tokenmanager-blockrange-producer"
+  queue_name: "tokenmanager-blocks-q"
+  cursor_key: "tokenmanager-blockrange-producer-cursor"
+  block_range_limit: 50
+  block_time: 1s
+
+tokenmanager_producer:
+  runner_name: "tokenmanager-events-producer"
+  items_queue_name: "tokenmanager-items-q"
+  collections_queue_name: "tokenmanager-collections-q"
+  block_range_consumer:
+    name: "tokenmanager-blockrange-consumer"
+    queue: "tokenmanager-blocks-q"
+
+items_indexer:
+  runner_name: "tokenmanager-items-indexer"
+  item_events_consumer:
+    name: "tokenmanager-item-events-consumer"
+    queue: "tokenmanager-items-q"
+
+collections_indexer:
+  runner_name: "tokenmanager-collections-indexer"
+  collection_events_consumer:
+    name: "tokenmanager-collection-events-consumer"
+    queue: "tokenmanager-collections-q"
+
+core:
+  addr: "localhost:26657"
+
+cosmos:
+  addr: "localhost:9090"
+
+redis:
+  addr: "localhost:6379"
+  db: 1
+
+genesis:
+  file: /genesis.json
+
+data:
+  chains:
+    - name: "Goerli"
+      id: 1
+      type: 0
+      rpc: "wss://goerli.infura.io/ws/v3/..."
+      icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png"
+      chain_params:
+        chain_id: "5"
+        native_symbol: "ETH"
+        explorer_url: "https://goerli.etherscan.io"
+    - name: "Fuji"
+      id: 2
+      type: 0
+      rpc: "https://avalanche-fuji.infura.io/v3/..."
+      icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/5426.png"
+      chain_params:
+        chain_id: "43113"
+        native_symbol: "AVAX"
+        explorer_url: "https://testnet.snowtrace.io"
+    - name: "Solana"
+      id: 3
+      type: 1
+      rpc: "https://api.devnet.solana.com"
+      icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/5426.png"
+      chain_params:
+        chain_id: "devnet"
+        native_symbol: "SOL"
+        explorer_url: "https://explorer.solana.com"
+    - name: "Near"
+      id: 4
+      type: 2
+      rpc: "https://rpc.testnet.near.org"
+      icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/6535.png"
+      chain_params:
+        chain_id: "testnet"
+        native_symbol: "NEAR"
+        explorer_url: "https://explorer.testnet.near.org"
+    - name: "Rarimo"
+      id: 5
+      type: 3
+      rpc: "https://rpc.node1.mainnet-beta.rarimo.com"
+      icon: "https://raw.githubusercontent.com/rarimo/js-sdk/2.0.0-rc.14/assets/logos/ra-dark-logo.png"
+      chain_params:
+        chain_id: "rarimo"
+        native_symbol: "RMO"
+        explorer_url: "https://scan.rarimo.com"

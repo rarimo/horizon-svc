@@ -27,7 +27,6 @@ const (
 )
 
 type rarimoProducer struct {
-	cfg       *config.BridgeProducerChainConfig
 	log       *logan.Entry
 	cursorer  types.Cursorer
 	publisher services.QPublisher
@@ -54,7 +53,6 @@ func New(
 	}
 
 	return &rarimoProducer{
-		cfg,
 		log,
 		cursorer.NewCursorer(log, kv, cursorKey, initialCursor),
 		publisher,

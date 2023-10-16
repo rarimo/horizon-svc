@@ -1,0 +1,87 @@
+log:
+  disable_sentry: true
+  level: debug
+
+db:
+  url: postgres://horizon:horizon@localhost:5432/horizon?sslmode=disable
+
+bridge_producer:
+  runner_name: "bridge-events-producer"
+  withdrawals_queue_name: "bridge-withdrawals-events-q"
+  cursor_key: "bridge-events-producer-cursor"
+  chains:
+    - id: 1
+      skip_catchup: false # optional, default: false
+    - id: 4
+      batch_size: 200 # only for Near
+
+withdrawals_indexer:
+  runner_name: "bridge-withdrawals-indexer"
+  withdrawals_consumer:
+    name: "bridge-withdrawals-events-consumer"
+    queue: "bridge-withdrawals-events-q"
+
+core:
+  addr: "localhost:26657"
+
+redis:
+  addr: "localhost:6379"
+  db: 1
+
+near_provider:
+  rpc:
+    main: "https://rpc.testnet.near.org"
+    history: "https://archival-rpc.testnet.near.org"
+  s3:
+    access_key: "ACCESS_KEY"
+    secret_access_key: "SECRET_ACCESS_KEY"
+    region: "eu-central-1"
+    bucket: "near-lake-data-testnet" # change prefix accordingly to the network (testnet\mainnet)
+
+data:
+  chains:
+    - name: "Goerli"
+      id: 1
+      type: 0
+      rpc: "wss://goerli.infura.io/ws/v3/..."
+      icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png"
+      chain_params:
+        chain_id: "5"
+        native_symbol: "ETH"
+        explorer_url: "https://goerli.etherscan.io"
+    - name: "Fuji"
+      id: 2
+      type: 0
+      rpc: "https://avalanche-fuji.infura.io/v3/..."
+      icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/5426.png"
+      chain_params:
+        chain_id: "43113"
+        native_symbol: "AVAX"
+        explorer_url: "https://testnet.snowtrace.io"
+    - name: "Solana"
+      id: 3
+      type: 1
+      rpc: "https://api.devnet.solana.com"
+      icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/5426.png"
+      chain_params:
+        chain_id: "devnet"
+        native_symbol: "SOL"
+        explorer_url: "https://explorer.solana.com"
+    - name: "Near"
+      id: 4
+      type: 2
+      rpc: "https://rpc.testnet.near.org"
+      icon: "https://s2.coinmarketcap.com/static/img/coins/64x64/6535.png"
+      chain_params:
+        chain_id: "testnet"
+        native_symbol: "NEAR"
+        explorer_url: "https://explorer.testnet.near.org"
+    - name: "Rarimo"
+      id: 5
+      type: 3
+      rpc: "https://rpc.node1.mainnet-beta.rarimo.com"
+      icon: "https://raw.githubusercontent.com/rarimo/js-sdk/2.0.0-rc.14/assets/logos/ra-dark-logo.png"
+      chain_params:
+        chain_id: "rarimo"
+        native_symbol: "RMO"
+        explorer_url: "https://scan.rarimo.com"

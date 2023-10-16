@@ -26,7 +26,6 @@ const (
 )
 
 type evmProducer struct {
-	cfg       *config.BridgeProducerChainConfig
 	log       *logan.Entry
 	publisher services.QPublisher
 	handlers  []Handler
@@ -71,7 +70,6 @@ func New(
 	}
 
 	return &evmProducer{
-		cfg,
 		log.WithField("who", chain.Name+"_evm_bridge_events_producer"),
 		publisher,
 		handlers,
