@@ -8,7 +8,6 @@ import (
 	"github.com/rarimo/horizon-svc/internal/services/api/handlers/sse"
 	"github.com/rarimo/horizon-svc/resources"
 	"gitlab.com/distributed_lab/ape/problems"
-	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 	"net/http"
 )
@@ -49,24 +48,21 @@ func WithdrawalByHash(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func renderWithdrawal(w http.ResponseWriter, r *http.Request, req *withdrawalByHashRequest, isInitialRender bool) (rendered bool) {
+func renderWithdrawal(w http.ResponseWriter, r *http.Request, req *withdrawalByHashRequest, isInitialRender bool) bool {
 	withdrawal, err := getWithdrawalByHashResponse(r, req)
 	if err != nil {
 		Log(r).WithError(err).Error("failed to get withdrawal by hash")
 		sse.RenderErr(w, problems.InternalError())
-		return
+		return false
 	}
-	if withdrawal == nil {
-		Log(r).WithFields(logan.F{"hash": req.Hash}).Error("withdrawal not found")
-		if isInitialRender {
-			sse.RenderErr(w, problems.NotFound())
-		}
-	} else {
-		Log(r).WithFields(logan.F{"hash": req.Hash}).Error("found withdrawal")
+	if withdrawal != nil {
 		sse.RenderResponse(w, withdrawal)
-		rendered = true
+		return true
 	}
 
+	if isInitialRender {
+		sse.RenderErr(w, problems.NotFound())
+	}
 	return false
 }
 

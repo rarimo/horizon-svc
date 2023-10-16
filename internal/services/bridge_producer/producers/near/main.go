@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/rarimo/horizon-svc/internal/config"
-	"github.com/rarimo/horizon-svc/internal/data"
 	"github.com/rarimo/horizon-svc/internal/data/redis"
 	"github.com/rarimo/horizon-svc/internal/services"
 	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/producers"
@@ -20,53 +19,46 @@ import (
 	"strings"
 )
 
-var ErrNoShardsAvailable = errors.New("No shards available")
-
 const (
 	EventPrefix      = "EVENT_JSON:"
 	DefaultBatchSize = uint64(200)
 )
 
 type nearProducer struct {
-	log       *logan.Entry
-	chain     data.Chain
-	near      nearprovider.Provider
-	cfg       *config.BridgeProducerChainConfig
-	publisher services.QPublisher
-	cursorer  types.Cursorer
+	cfg            *config.BridgeProducerChainConfig
+	log            *logan.Entry
+	cursorer       types.Cursorer
+	publisher      services.QPublisher
+	near           nearprovider.Provider
+	bridgeContract common.AccountID
 }
 
 func New(
 	cfg *config.BridgeProducerChainConfig,
 	log *logan.Entry,
-	chain data.Chain,
 	kv *redis.KeyValueProvider,
 	publisher services.QPublisher,
 	near nearprovider.Provider,
+	bridgeContract common.AccountID,
 	cursorKey string,
 ) types.Producer {
-	f := logan.F{
-		"chain": chain.Name,
-		"rpc":   chain.Rpc,
-	}
-
 	initialCursor := producers.DefaultInitialCursor
 	if cfg != nil && cfg.SkipCatchup {
 		lastBlock, err := near.GetLastKnownBlockHeight(context.Background())
 		if err != nil {
-			panic(errors.Wrap(err, "failed to get last block", f))
+			panic(errors.Wrap(err, "failed to get last block"))
 		}
 
 		initialCursor = strconv.FormatUint(*lastBlock, 10)
 	}
 
 	return &nearProducer{
-		log,
-		chain,
-		near,
 		cfg,
-		publisher,
+		log,
 		cursorer.NewCursorer(log, kv, cursorKey, initialCursor),
+		publisher,
+		near,
+		bridgeContract,
 	}
 }
 
@@ -160,7 +152,7 @@ func (p *nearProducer) processShards(ctx context.Context, block common.BlockHeig
 		}
 
 		for _, transactionView := range shard.Chunk.Transactions {
-			err := p.processTx(ctx, transactionView, block, shard.ShardID)
+			err := p.processTx(ctx, transactionView, shard.ShardID)
 			if err != nil {
 				return errors.Wrap(err, "failed to process tx", f.Merge(logan.F{
 					"tx_hash":    transactionView.Transaction.Hash.String(),
@@ -174,7 +166,7 @@ func (p *nearProducer) processShards(ctx context.Context, block common.BlockHeig
 	return nil
 }
 
-func (p *nearProducer) processTx(ctx context.Context, transaction common.ShardChunkTransactionView, block common.BlockHeight, shardID common.ShardID) error {
+func (p *nearProducer) processTx(ctx context.Context, transaction common.ShardChunkTransactionView, shardID common.ShardID) error {
 	f := logan.F{
 		"shard_id": shardID,
 		"tx_hash":  transaction.Transaction.Hash.String(),
@@ -186,15 +178,15 @@ func (p *nearProducer) processTx(ctx context.Context, transaction common.ShardCh
 		return errors.Wrap(err, "failed to get transaction", f)
 	}
 
-	err = p.processReceiptsOutcomes(ctx, block, tx)
+	err = p.processReceiptsOutcomes(ctx, tx)
 	return errors.Wrap(err, "failed to process receipts", f)
 }
 
-func (p *nearProducer) processReceiptsOutcomes(ctx context.Context, height common.BlockHeight, tx *common.FinalExecutionOutcomeWithReceiptView) error {
+func (p *nearProducer) processReceiptsOutcomes(ctx context.Context, tx *common.FinalExecutionOutcomeWithReceiptView) error {
 	messages := make([]msgs.Message, 0)
 
 	for _, receiptOutcome := range tx.FinalExecutionOutcomeView.ReceiptsOutcome {
-		if receiptOutcome.Outcome.ExecutorID != p.chain.BridgeContract {
+		if receiptOutcome.Outcome.ExecutorID != p.bridgeContract {
 			continue
 		}
 

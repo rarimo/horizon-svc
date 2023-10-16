@@ -26,9 +26,8 @@ const (
 )
 
 type evmProducer struct {
-	log       *logan.Entry
 	cfg       *config.BridgeProducerChainConfig
-	chain     data.Chain
+	log       *logan.Entry
 	publisher services.QPublisher
 	handlers  []Handler
 }
@@ -36,9 +35,10 @@ type evmProducer struct {
 func New(
 	cfg *config.BridgeProducerChainConfig,
 	log *logan.Entry,
-	chain data.Chain,
+	chain *data.Chain,
 	kv *redis.KeyValueProvider,
 	publisher services.QPublisher,
+	bridgeContract,
 	cursorKey string,
 ) types.Producer {
 	f := logan.F{
@@ -61,7 +61,7 @@ func New(
 		initialCursor = strconv.FormatUint(lastBlockHeight, 10)
 	}
 
-	contract := common.HexToAddress(chain.BridgeContract)
+	contract := common.HexToAddress(bridgeContract)
 
 	handlers := []Handler{
 		newNativeHandler(log, cli, chain.Name, kv, publisher, contract, cursorKey, initialCursor),
@@ -71,9 +71,8 @@ func New(
 	}
 
 	return &evmProducer{
-		log.WithField("who", chain.Name+"_evm_bridge_events_producer"),
 		cfg,
-		chain,
+		log.WithField("who", chain.Name+"_evm_bridge_events_producer"),
 		publisher,
 		handlers,
 	}

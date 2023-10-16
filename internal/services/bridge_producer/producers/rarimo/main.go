@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/rarimo/horizon-svc/internal/config"
-	"github.com/rarimo/horizon-svc/internal/data"
 	"github.com/rarimo/horizon-svc/internal/data/redis"
 	"github.com/rarimo/horizon-svc/internal/services"
 	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/producers"
@@ -28,11 +27,10 @@ const (
 )
 
 type rarimoProducer struct {
-	log       *logan.Entry
-	chain     data.Chain
 	cfg       *config.BridgeProducerChainConfig
-	publisher services.QPublisher
+	log       *logan.Entry
 	cursorer  types.Cursorer
+	publisher services.QPublisher
 	tm        *thttp.HTTP
 	txConfig  client.TxConfig
 }
@@ -40,33 +38,26 @@ type rarimoProducer struct {
 func New(
 	cfg *config.BridgeProducerChainConfig,
 	log *logan.Entry,
-	chain data.Chain,
 	kv *redis.KeyValueProvider,
 	publisher services.QPublisher,
 	tm *thttp.HTTP,
 	cursorKey string,
 ) types.Producer {
-	f := logan.F{
-		"chain": chain.Name,
-		"rpc":   chain.Rpc,
-	}
-
 	initialCursor := producers.DefaultInitialCursor
 	if cfg != nil && cfg.SkipCatchup {
 		netStatus, err := tm.Status(context.Background())
 		if err != nil {
-			panic(errors.Wrap(err, "failed to get network status", f))
+			panic(errors.Wrap(err, "failed to get network status"))
 		}
 
 		initialCursor = strconv.FormatInt(netStatus.SyncInfo.LatestBlockHeight, 10)
 	}
 
 	return &rarimoProducer{
-		log,
-		chain,
 		cfg,
-		publisher,
+		log,
 		cursorer.NewCursorer(log, kv, cursorKey, initialCursor),
+		publisher,
 		tm,
 		encoding.MakeConfig(app.ModuleBasics).TxConfig,
 	}

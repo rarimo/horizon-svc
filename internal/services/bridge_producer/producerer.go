@@ -36,20 +36,25 @@ func newProducerer(cfg config.Config, publisher services.QPublisher) types.Produ
 		contracts[net.Name] = bridgeParams.Contract
 	}
 
-	for _, chain := range cfg.ChainsQ().List() {
+	for chainName, contract := range contracts {
+		chain := cfg.ChainsQ().Get(chainName)
+		if chain == nil {
+			cfg.Log().WithField("chain", chainName).Info("Chain not found")
+			continue
+		}
 		cursorKey := chain.Name + "_" + cfg.BridgeProducer().CursorKey
 		log := cfg.Log().WithField("who", chain.Name+"_bridge_events_producer")
 		conf := cfg.BridgeProducer().ChainConfigByID(chain.ID)
 
 		switch chain.Type {
 		case tokenmanager.NetworkType_EVM:
-			repo.producers[chain.Name] = evm.New(conf, log, chain, kv, publisher, cursorKey)
+			repo.producers[chain.Name] = evm.New(conf, log, chain, kv, publisher, contract, cursorKey)
 		case tokenmanager.NetworkType_Solana:
-			repo.producers[chain.Name] = solana.New(conf, log, chain, kv, publisher, cursorKey)
+			repo.producers[chain.Name] = solana.New(conf, log, kv, publisher, chain, contract, cursorKey)
 		case tokenmanager.NetworkType_Near:
-			repo.producers[chain.Name] = near.New(conf, log, chain, kv, publisher, cfg.Near(), cursorKey)
+			repo.producers[chain.Name] = near.New(conf, log, kv, publisher, cfg.Near(), contract, cursorKey)
 		case tokenmanager.NetworkType_Other: // FIXME: change to the rarimo chain type when it will be implemented
-			repo.producers[chain.Name] = rarimo.New(conf, log, chain, kv, publisher, cfg.Tendermint(), cursorKey)
+			repo.producers[chain.Name] = rarimo.New(conf, log, kv, publisher, cfg.Tendermint(), cursorKey)
 		default:
 			panic("Unsupported chain type")
 		}

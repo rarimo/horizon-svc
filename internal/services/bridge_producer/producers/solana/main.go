@@ -13,7 +13,7 @@ import (
 	"github.com/rarimo/horizon-svc/internal/services"
 	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/producers/cursorer"
 	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/types"
-	msgs "github.com/rarimo/horizon-svc/pkg/msgs"
+	"github.com/rarimo/horizon-svc/pkg/msgs"
 	"github.com/rarimo/rarimo-core/x/rarimocore/crypto/operation/origin"
 	"github.com/rarimo/solana-program-go/contracts/bridge"
 	"gitlab.com/distributed_lab/logan/v3"
@@ -26,21 +26,29 @@ const (
 
 type solanaProducer struct {
 	log       *logan.Entry
-	chain     data.Chain
-	cli       *rpc.Client
 	cursorer  types.Cursorer
 	publisher services.QPublisher
+	chain     string
 	programId solana.PublicKey
+	cli       *rpc.Client
 }
 
-func New(cfg *config.BridgeProducerChainConfig, log *logan.Entry, chain data.Chain, kv *redis.KeyValueProvider, publisher services.QPublisher, cursorKey string) types.Producer {
+func New(
+	cfg *config.BridgeProducerChainConfig,
+	log *logan.Entry,
+	kv *redis.KeyValueProvider,
+	publisher services.QPublisher,
+	chain *data.Chain,
+	bridgeContract,
+	cursorKey string,
+) types.Producer {
 	f := logan.F{
 		"chain": chain.Name,
 		"rpc":   chain.Rpc,
 	}
 
 	cli := rpc.New(chain.Rpc)
-	programId := solana.MustPublicKeyFromBase58(chain.BridgeContract)
+	programId := solana.PublicKeyFromBytes(hexutil.MustDecode(bridgeContract))
 
 	initialCursor := solana.Signature{}.String()
 	if cfg != nil && cfg.SkipCatchup {
@@ -54,11 +62,11 @@ func New(cfg *config.BridgeProducerChainConfig, log *logan.Entry, chain data.Cha
 
 	return &solanaProducer{
 		log,
-		chain,
-		cli,
 		cursorer.NewCursorer(log, kv, cursorKey, initialCursor),
 		publisher,
+		chain.Name,
 		programId,
+		cli,
 	}
 }
 
@@ -121,7 +129,7 @@ func (p *solanaProducer) processTransaction(ctx context.Context, sig solana.Sign
 				hash := origin.NewDefaultOriginBuilder().
 					SetTxHash(sig.String()).
 					SetOpId(fmt.Sprint(i)).
-					SetCurrentNetwork(p.chain.Name).
+					SetCurrentNetwork(p.chain).
 					Build().
 					GetOrigin()
 				messages = append(messages, msgs.WithdrawalMsg{
