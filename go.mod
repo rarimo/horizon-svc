@@ -22,7 +22,7 @@ require (
 	github.com/olegfomenko/solana-go v1.4.2-0.20221104112355-eb3546bb0e15
 	github.com/pkg/errors v0.9.1
 	github.com/rarimo/evm-bridge-contracts v0.0.0-20231009124003-c6406c6a36df
-	github.com/rarimo/near-go v0.0.0-20231010092111-60a68fb20b8b
+	github.com/rarimo/near-go v0.0.0-20231018141257-af5322bd02a9
 	github.com/rarimo/rarimo-core v1.0.6
 	github.com/rarimo/solana-program-go v1.0.0
 	github.com/rarimo/xo v1.0.6-0.20231005111658-6ba1ce8f056a

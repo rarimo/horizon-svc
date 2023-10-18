@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/rarimo/horizon-svc/internal/config"
 	"github.com/rarimo/horizon-svc/internal/data/redis"
 	"github.com/rarimo/horizon-svc/internal/services"
@@ -58,7 +59,7 @@ func New(
 		cursorer.NewCursorer(log, kv, cursorKey, initialCursor),
 		publisher,
 		near,
-		bridgeContract,
+		string(hexutil.MustDecode(bridgeContract)),
 	}
 }
 

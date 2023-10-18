@@ -22,7 +22,10 @@ withdrawals_indexer:
     queue: "bridge-withdrawals-events-q"
 
 core:
-  addr: "localhost:26657"
+  addr: "tcp://localhost:26657"
+
+cosmos:
+  addr: "localhost:9090"
 
 redis:
   addr: "localhost:6379"

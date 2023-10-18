@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/rarimo/horizon-svc/internal/config"
 	"github.com/rarimo/horizon-svc/internal/data"
-	"github.com/rarimo/horizon-svc/internal/services"
 	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/types"
 	"github.com/rarimo/horizon-svc/pkg/msgs"
 	"gitlab.com/distributed_lab/logan/v3"
@@ -15,7 +14,8 @@ import (
 )
 
 func RunBridgeEventsProducer(ctx context.Context, cfg config.Config) {
-	log := cfg.Log().WithField("who", cfg.BridgeProducer().RunnerName+"_bridge_events_producer")
+	who := cfg.BridgeProducer().RunnerName + "_bridge_events_producer"
+	log := cfg.Log().WithField("who", who)
 
 	withdrawalsPublisher, err := msgs.NewPublisher(cfg.Log(), cfg.RedisClient(),
 		cfg.BridgeProducer().RunnerName+"_withdrawals_publisher",
@@ -24,22 +24,24 @@ func RunBridgeEventsProducer(ctx context.Context, cfg config.Config) {
 		panic(errors.Wrap(err, "failed to create withdrawals publisher"))
 	}
 
-	producer := &bridgeEventsProducer{
-		log:       log,
-		producers: newProducerer(cfg, withdrawalsPublisher),
-	}
-
-	producer.run(ctx)
+	running.WithBackOff(ctx, log, who,
+		func(ctx context.Context) error {
+			provider := &bridgeEventsProducer{
+				log:       log,
+				chains:    cfg.ChainsQ(),
+				producers: newProducerer(cfg, withdrawalsPublisher),
+			}
+			return provider.run(ctx)
+		}, 5*time.Second, 10*time.Second, time.Minute)
 }
 
 type bridgeEventsProducer struct {
-	log                  *logan.Entry
-	chains               data.ChainsQ
-	withdrawalsPublisher services.QPublisher
-	producers            types.Producerer
+	log       *logan.Entry
+	chains    data.ChainsQ
+	producers types.Producerer
 }
 
-func (c *bridgeEventsProducer) run(ctx context.Context) {
+func (c *bridgeEventsProducer) run(ctx context.Context) error {
 	wg := &sync.WaitGroup{}
 
 	for _, chain := range c.chains.List() {
@@ -53,4 +55,6 @@ func (c *bridgeEventsProducer) run(ctx context.Context) {
 		}(chain)
 	}
 	wg.Wait()
+
+	return nil
 }

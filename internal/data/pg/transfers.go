@@ -77,7 +77,7 @@ func applyTransfersSelector(stmt squirrel.SelectBuilder, selector data.TransferS
 	}
 
 	if selector.ChainTx != nil {
-		stmt = stmt.Where(squirrel.Eq{"tx": hexutil.MustDecode(*selector.ChainTx)})
+		stmt = stmt.Where(squirrel.Eq{"tx": []byte(*selector.ChainTx)})
 	}
 
 	if selector.SourceChain != nil {
