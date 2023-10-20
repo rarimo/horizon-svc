@@ -19,7 +19,7 @@ func RunRejectionIndexer(ctx context.Context, cfg config.Config) {
 	rindexer := &rejectionIndexer{
 		log:        cfg.Log().WithField("who", cfg.RejectionsIndexer().RunnerName),
 		rarimocore: rarimocore.NewQueryClient(cfg.Cosmos()),
-		storage:    cfg.CachedStorage(),
+		storage:    cfg.CachedStorage().Clone(),
 	}
 
 	msgs.NewConsumer(

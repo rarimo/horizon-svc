@@ -3,10 +3,7 @@ package services
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"time"
-
-	"github.com/rarimo/horizon-svc/internal/core"
 
 	"github.com/rarimo/horizon-svc/internal/config"
 	"github.com/rarimo/horizon-svc/internal/data"
@@ -22,12 +19,9 @@ func RunCollectionsIndexer(ctx context.Context, cfg config.Config) {
 	handler := &collectionIndexer{
 		log:          log,
 		tokenmanager: tokenmanager.NewQueryClient(cfg.Cosmos()),
-		storage:      cfg.CachedStorage(),
+		storage:      cfg.CachedStorage().Clone(),
 		chains:       cfg.ChainsQ(),
-	}
-
-	if err := handler.loadGenesisCollections(ctx, cfg.Genesis()); err != nil {
-		panic(errors.Wrap(err, "failed to catchup collections"))
+		saver:        NewTokenmanagerSaver(cfg),
 	}
 
 	msgs.NewConsumer(
@@ -38,11 +32,11 @@ func RunCollectionsIndexer(ctx context.Context, cfg config.Config) {
 }
 
 type collectionIndexer struct {
-	log                *logan.Entry
-	tokenmanager       tokenmanager.QueryClient
-	tokenmanagerGetter core.TokenManager
-	storage            data.Storage
-	chains             data.ChainsQ
+	log          *logan.Entry
+	tokenmanager tokenmanager.QueryClient
+	storage      data.Storage
+	chains       data.ChainsQ
+	saver        *TokenmanagerSaver
 }
 
 func (p *collectionIndexer) Handle(ctx context.Context, batch []msgs.Message) error {
@@ -75,70 +69,6 @@ func (p *collectionIndexer) handle(ctx context.Context, raw msgs.Message) error 
 	}
 }
 
-func (p *collectionIndexer) loadGenesisCollections(ctx context.Context, cfg config.GenesisConfig) error {
-	if cfg.Disabled {
-		p.log.Info("skipping genesis collections loading (disabled in config)")
-		return nil
-	}
-
-	for _, col := range cfg.GenesisState.Collections {
-		exising, err := p.storage.CollectionQ().CollectionByIndexCtx(ctx, []byte(col.Index), false)
-		if err != nil {
-			return errors.Wrap(err, "failed to get collection from storage", logan.F{
-				"index": col.Index,
-			})
-		}
-
-		if exising != nil {
-			continue
-		}
-
-		err = p.storage.Transaction(func() error {
-			savedCollection, err := p.saveCollection(ctx, col)
-			if err != nil {
-				return errors.Wrap(err, "failed to save collection", logan.F{
-					"index": col.Index,
-				})
-			}
-
-			cdataToSave := make([]*tokenmanager.CollectionData, 0, len(col.Data))
-			for _, genesisData := range cfg.GenesisState.Datas {
-				if genesisData.Collection != col.Index {
-					continue
-				}
-
-				cdataToSave = append(cdataToSave, &tokenmanager.CollectionData{
-					Index: &tokenmanager.CollectionDataIndex{
-						Chain:   genesisData.Index.Chain,
-						Address: genesisData.Index.Address,
-					},
-					Collection: genesisData.Collection,
-					TokenType:  genesisData.TokenType,
-					Wrapped:    genesisData.Wrapped,
-					Decimals:   genesisData.Decimals,
-				})
-			}
-
-			err = p.saveCollectionData(ctx, savedCollection.ID, cdataToSave)
-			if err != nil {
-				return errors.Wrap(err, "failed  to save collection data", logan.F{
-					"index": col.Index,
-				})
-			}
-
-			return nil
-		})
-
-		if err != nil {
-			return errors.Wrap(err, "failed to save collection", logan.F{
-				"index": col.Index,
-			})
-		}
-	}
-
-	return nil
-}
-
 func (p *collectionIndexer) handleCollectionCreated(ctx context.Context, msg msgs.CollectionCreatedMessage) error {
 	collectionResp, err := p.tokenmanager.Collection(ctx, &tokenmanager.QueryGetCollectionRequest{
 		Index: msg.Index,
@@ -150,73 +80,8 @@ func (p *collectionIndexer) handleCollectionCreated(ctx context.Context, msg msg
 		})
 	}
 
-	_, err = p.saveCollection(ctx, collectionResp.Collection)
+	_, err = p.saver.SaveCollection(ctx, collectionResp.Collection)
 	return err
-}
-
-func (p *collectionIndexer) saveCollection(ctx context.Context, coreCollection tokenmanager.Collection) (*data.Collection, error) {
-	now := time.Now().UTC()
-	col := data.Collection{
-		Index:     []byte(coreCollection.Index),
-		Metadata:  []byte("{}"),
-		CreatedAt: now,
-		UpdatedAt: now,
-	}
-
-	var err error
-
-	col.Metadata, err = json.Marshal(coreCollection.Meta)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal collection metadata", logan.F{
-			"index": coreCollection.Index,
-		})
-	}
-
-	if err := p.storage.CollectionQ().InsertCtx(ctx, &col); err != nil {
-		return nil, errors.Wrap(err, "failed to insert collection", logan.F{
-			"index": coreCollection.Index,
-		})
-	}
-
-	return &col, nil
-}
-
-func (p *collectionIndexer) saveCollectionData(ctx context.Context, collectionID int64, coreCollectionData []*tokenmanager.CollectionData) error {
-	now := time.Now().UTC()
-
-	collectionDataBatch := make([]data.CollectionChainMapping, len(coreCollectionData))
-	for i, collectionData := range coreCollectionData {
-		network := p.chains.Get(collectionData.Index.Chain)
-		if network == nil {
-			p.log.WithField("core_chain", collectionData.Index.Chain).Warn("chain not supported on horizon")
-			continue
-		}
-
-		collectionDataBatch[i] = data.CollectionChainMapping{
-			Collection: collectionID,
-			Network:    network.ID,
-			Address:    []byte(collectionData.Index.Address),
-			TokenType: sql.NullInt64{
-				Int64: int64(collectionData.TokenType),
-				Valid: true,
-			},
-			Wrapped: sql.NullBool{
-				Bool:  collectionData.Wrapped,
-				Valid: true,
-			},
-			Decimals: sql.NullInt64{
-				Int64: int64(collectionData.Decimals),
-				Valid: true,
-			},
-			CreatedAt: now,
-			UpdatedAt: now,
-		}
-	}
-
-	err := p.storage.CollectionChainMappingQ().InsertBatchCtx(ctx, collectionDataBatch...)
-	return errors.Wrap(err, "failed to insert collection data", logan.F{
-		"collection": collectionID,
-	})
 }
 
 func (p *collectionIndexer) handleCollectionRemoved(ctx context.Context, msg msgs.CollectionRemovedMessage) error {

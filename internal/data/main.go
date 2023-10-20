@@ -7,6 +7,7 @@ import "context"
 //go:generate goimports -w ./
 
 type Storage interface {
+	Clone() Storage
 	Transaction(func() error) error
 	TransferQ() TransferQ
 	ConfirmationQ() ConfirmationQ
@@ -56,6 +57,7 @@ type RejectionQ interface {
 
 type CollectionQ interface {
 	InsertCtx(ctx context.Context, c *Collection) error
+	UpsertCtx(ctx context.Context, c *Collection) error
 	CollectionByIndexCtx(ctx context.Context, index []byte, isForUpdate bool) (*Collection, error)
 	DeleteCtx(ctx context.Context, c *Collection) error
 }

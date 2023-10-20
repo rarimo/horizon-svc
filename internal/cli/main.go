@@ -84,6 +84,7 @@ func Run(args []string) {
 			defer func() {
 				if rvr := recover(); rvr != nil {
 					logan.New().WithRecover(rvr).Error("service panicked")
+					//cancel()
 				}
 			}()
 
@@ -96,6 +97,7 @@ func Run(args []string) {
 		cfg.Log().Info("starting API")
 		run(api.Run)
 	case tokenmanagerIndexerCmd.FullCommand():
+		ParseAndSaveGenesis(ctx, cfg)
 		cfg.Log().Info("starting tokenmanager indexers")
 		run(services.RunBlockRangeProducer)
 		run(services.RunTokenManagerEventsProducer)
@@ -124,9 +126,11 @@ func Run(args []string) {
 		cfg.Log().Info("starting tokenmanager operations producer")
 		run(services.RunTokenManagerEventsProducer)
 	case itemsIndexerCmd.FullCommand():
+		ParseAndSaveGenesis(ctx, cfg)
 		cfg.Log().Info("starting items indexer")
 		run(services.RunItemsIndexer)
 	case collectionsIndexerCmd.FullCommand():
+		ParseAndSaveGenesis(ctx, cfg)
 		cfg.Log().Info("starting collection indexer")
 		run(services.RunCollectionsIndexer)
 	case votesIndexerCmd.FullCommand():

@@ -118,7 +118,9 @@ func applyTransfersSelector(stmt squirrel.SelectBuilder, selector data.TransferS
 }
 
 func applyTransfersPagination(stmt squirrel.SelectBuilder, sorts pgdb.Sorts, cursor, limit uint64) squirrel.SelectBuilder {
-	stmt = stmt.Limit(limit)
+	if limit != 0 {
+		stmt = stmt.Limit(limit)
+	}
 
 	if len(sorts) == 0 {
 		sorts = pgdb.Sorts{"-time"}

@@ -33,7 +33,7 @@ collections_indexer:
     queue: "tokenmanager-collections-q"
 
 core:
-  addr: "localhost:26657"
+  addr: "tcp://localhost:26657"
 
 cosmos:
   addr: "localhost:9090"

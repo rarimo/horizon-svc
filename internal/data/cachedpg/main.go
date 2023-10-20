@@ -19,11 +19,19 @@ type Storage struct {
 	cache *marshaler.Marshaler
 }
 
-func NewStorage(log *logan.Entry, raw data.Storage, redisClient *redis.Client) *Storage {
+func NewStorage(log *logan.Entry, raw data.Storage, redisClient *redis.Client) data.Storage {
 	return &Storage{
 		log:   log,
 		raw:   raw,
 		cache: marshaler.New(cache.New[any](redisstore.NewRedis(redisClient))),
+	}
+}
+
+func (s *Storage) Clone() data.Storage {
+	return &Storage{
+		log:   s.log,
+		raw:   s.raw.Clone(),
+		cache: s.cache,
 	}
 }
 

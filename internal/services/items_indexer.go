@@ -2,11 +2,8 @@ package services
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"time"
-
-	"github.com/rarimo/horizon-svc/internal/core"
 
 	"github.com/rarimo/horizon-svc/internal/config"
 	"github.com/rarimo/horizon-svc/internal/data"
@@ -24,10 +21,7 @@ func RunItemsIndexer(ctx context.Context, cfg config.Config) {
 		tokenmanager: tokenmanager.NewQueryClient(cfg.Cosmos()),
 		storage:      cfg.CachedStorage(),
 		chains:       cfg.ChainsQ(),
-	}
-
-	if err := handler.saveGenesisItems(ctx, cfg.Genesis()); err != nil {
-		panic(errors.Wrap(err, "failed to load genesis items"))
+		saver:        NewTokenmanagerSaver(cfg),
 	}
 
 	msgs.NewConsumer(
@@ -38,11 +32,11 @@ func RunItemsIndexer(ctx context.Context, cfg config.Config) {
 }
 
 type itemsIndexer struct {
-	log                *logan.Entry
-	tokenmanager       tokenmanager.QueryClient
-	tokenmanagerGetter core.TokenManager
-	storage            data.Storage
-	chains             data.ChainsQ
+	log          *logan.Entry
+	tokenmanager tokenmanager.QueryClient
+	storage      data.Storage
+	chains       data.ChainsQ
+	saver        *TokenmanagerSaver
 }
 
 func (p *itemsIndexer) Handle(ctx context.Context, batch []msgs.Message) error {
@@ -82,107 +76,6 @@ func (p *itemsIndexer) handle(ctx context.Context, raw msgs.Message) error {
 	}
 }
 
-func (p *itemsIndexer) saveGenesisItems(ctx context.Context, cfg config.GenesisConfig) error {
-	if cfg.Disabled {
-		p.log.Info("skipping genesis items loading (disabled in config)")
-		return nil
-	}
-
-	for _, item := range cfg.GenesisState.Items {
-		existing, err := p.storage.ItemQ().ItemByIndexCtx(ctx, []byte(item.Index), false)
-		if err != nil {
-			return errors.Wrap(err, "failed to get item from storage", logan.F{
-				"index": item.Index,
-			})
-		}
-
-		if existing != nil {
-			continue
-		}
-
-		err = p.storage.Transaction(func() error {
-			dataItem, err := p.saveItem(ctx, item)
-			if err != nil {
-				return errors.Wrap(err, "failed to save genesis item", logan.F{
-					"index": item.Index,
-				})
-			}
-
-			if err := p.saveOnChainItems(ctx, dataItem.ID, item.OnChain); err != nil {
-				return errors.Wrap(err, "failed to save genesis item on-chain data", logan.F{
-					"index": item.Index,
-				})
-			}
-
-			return nil
-		})
-
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (p *itemsIndexer) saveItem(ctx context.Context, coreItem tokenmanager.Item) (*data.Item, error) {
-	collection, err := p.storage.CollectionQ().CollectionByIndexCtx(ctx, []byte(coreItem.Collection), false)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get collection from storage", logan.F{
-			"index": coreItem.Collection,
-		})
-	}
-
-	now := time.Now().UTC()
-	item := data.Item{
-		Index: []byte(coreItem.Index),
-		Collection: sql.NullInt64{
-			Int64: collection.ID,
-			Valid: true,
-		},
-		CreatedAt: now,
-		UpdatedAt: now,
-	}
-
-	item.Metadata, err = json.Marshal(coreItem.Meta)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal item metadata", logan.F{
-			"index": coreItem.Index,
-		})
-	}
-
-	if err := p.storage.ItemQ().InsertCtx(ctx, &item); err != nil {
-		return nil, errors.Wrap(err, "failed to insert item", logan.F{
-			"index": item.Index,
-		})
-	}
-
-	return &item, nil
-}
-
-func (p *itemsIndexer) saveOnChainItems(ctx context.Context, itemID int64, onChain []*tokenmanager.OnChainItemIndex) error {
-	now := time.Now().UTC()
-	onChainItemBatch := make([]data.ItemChainMapping, len(onChain))
-	for i, onChainItem := range onChain {
-		network := p.chains.Get(onChainItem.Chain)
-		if network == nil {
-			p.log.WithField("core_chain", onChainItem.Chain).Warn("chain not supported on horizon")
-			continue
-		}
-
-		onChainItemBatch[i] = data.ItemChainMapping{
-			Item:      itemID,
-			Network:   network.ID,
-			Address:   []byte(onChainItem.Address),
-			TokenID:   []byte(onChainItem.TokenID),
-			CreatedAt: now,
-			UpdatedAt: now,
-		}
-	}
-
-	return p.storage.ItemChainMappingQ().InsertBatchCtx(ctx, onChainItemBatch...)
-}
-
 func (p *itemsIndexer) handleItemCreated(ctx context.Context, msg msgs.ItemCreatedMessage) error {
 	p.log.
 		WithField("index", msg.Index).
@@ -195,7 +88,7 @@ func (p *itemsIndexer) handleItemCreated(ctx context.Context, msg msgs.ItemCreat
 		})
 	}
 
-	_, err = p.saveItem(ctx, itemResp.Item)
+	_, err = p.saver.SaveItem(ctx, itemResp.Item)
 	return errors.Wrap(err, "failed to save item", logan.F{
 		"index": msg.Index,
 	})

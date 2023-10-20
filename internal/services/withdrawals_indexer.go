@@ -14,7 +14,7 @@ import (
 func RunWithdrawalsIndexer(ctx context.Context, cfg config.Config) {
 	windexer := &withdrawalsIndexer{
 		log:     cfg.Log().WithField("who", cfg.WithdrawalsIndexer().RunnerName),
-		storage: cfg.NewStorage(),
+		storage: cfg.NewStorage().Clone(),
 	}
 
 	msgs.NewConsumer(

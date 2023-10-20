@@ -17,7 +17,7 @@ import (
 func RunVotesIndexer(ctx context.Context, cfg config.Config) {
 	vindexer := &votesIndexer{
 		log:     cfg.Log().WithField("who", cfg.VotesIndexer().RunnerName),
-		storage: cfg.NewStorage(),
+		storage: cfg.NewStorage().Clone(),
 	}
 
 	msgs.NewConsumer(

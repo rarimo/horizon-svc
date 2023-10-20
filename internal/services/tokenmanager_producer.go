@@ -46,7 +46,7 @@ func RunTokenManagerEventsProducer(ctx context.Context, cfg config.Config) {
 		itemEventsPublisher:       itemEventsPublisher,
 		collectionEventsPublisher: collectionEventsPublisher,
 		kv:                        redis.NewKeyValueProvider(cfg),
-		txQ:                       cfg.CachedStorage().TransactionQ(),
+		txQ:                       cfg.CachedStorage().Clone().TransactionQ(),
 	}
 
 	msgs.NewConsumer(

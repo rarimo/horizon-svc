@@ -17,53 +17,40 @@ type withdrawalByHashRequest struct {
 }
 
 func newWithdrawalByHashRequest(r *http.Request) (*withdrawalByHashRequest, error) {
-	id := chi.URLParam(r, "hash")
+	hash := chi.URLParam(r, "hash")
 
 	err := validation.Errors{
-		"hash": validation.Validate(id, validation.Required),
+		"hash": validation.Validate(hash, validation.Required),
 	}.Filter()
 	if err != nil {
 		return nil, errors.Wrap(err, "request is invalid")
 	}
 
 	return &withdrawalByHashRequest{
-		Hash: id,
+		hash,
 	}, nil
 }
 
 func WithdrawalByHash(w http.ResponseWriter, r *http.Request) {
-	req, err := newWithdrawalByHashRequest(r)
-	if err != nil {
-		sse.RenderErr(w, problems.BadRequest(err)...)
-		return
+	makeResponse := func() interface{} {
+		req, err := newWithdrawalByHashRequest(r)
+		if err != nil {
+			return sse.ToErrorResponse(problems.BadRequest(err)...)
+		}
+
+		withdrawal, err := getWithdrawalByHashResponse(r, req)
+		if err != nil {
+			Log(r).WithError(err).Error("failed to get withdrawal by hash")
+			return sse.ToErrorResponse(problems.InternalError())
+		}
+		if withdrawal == nil {
+			return sse.ToErrorResponse(problems.NotFound())
+		}
+
+		return withdrawal
 	}
 
-	rendered := renderWithdrawal(w, r, req, true)
-	if rendered {
-		return
-	}
-
-	sse.ServeEvents(w, r, func() bool {
-		return renderWithdrawal(w, r, req, false)
-	})
-}
-
-func renderWithdrawal(w http.ResponseWriter, r *http.Request, req *withdrawalByHashRequest, isInitialRender bool) bool {
-	withdrawal, err := getWithdrawalByHashResponse(r, req)
-	if err != nil {
-		Log(r).WithError(err).Error("failed to get withdrawal by hash")
-		sse.RenderErr(w, problems.InternalError())
-		return false
-	}
-	if withdrawal != nil {
-		sse.RenderResponse(w, withdrawal)
-		return true
-	}
-
-	if isInitialRender {
-		sse.RenderErr(w, problems.NotFound())
-	}
-	return false
+	sse.ServeEvents(w, r, makeResponse)
 }
 
 func getWithdrawalByHashResponse(r *http.Request, req *withdrawalByHashRequest) (*resources.WithdrawalResponse, error) {

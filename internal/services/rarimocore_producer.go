@@ -70,7 +70,7 @@ func RunRarimoCoreOpProducer(ctx context.Context, cfg config.Config) {
 		rejectionsPublisher:    rejectionsPublisher,
 		votesPublisher:         votesPublisher,
 		kv:                     redis.NewKeyValueProvider(cfg),
-		txQ:                    cfg.CachedStorage().TransactionQ(),
+		txQ:                    cfg.CachedStorage().Clone().TransactionQ(),
 	}
 
 	msgs.NewConsumer(

@@ -2,10 +2,11 @@ package sse
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/google/jsonapi"
+	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -13,40 +14,24 @@ const (
 	ContentType      = "text/event-stream"
 	CacheControl     = "no-cache"
 	Connection       = "keep-alive"
-	SendEventTimeout = 10 * time.Second
+	SendEventTimeout = 5 * time.Second
 )
 
-func RenderErr(w http.ResponseWriter, errs ...*jsonapi.ErrorObject) {
+func ToErrorResponse(errs ...*jsonapi.ErrorObject) *jsonapi.ErrorsPayload {
 	if len(errs) == 0 {
 		panic("expected non-empty errors slice")
 	}
 
-	// getting status of first occurred error
-	status, err := strconv.ParseInt(errs[0].Status, 10, 64)
-	if err != nil {
-		panic(errors.Wrap(err, "failed to parse status"))
-	}
-	setSSEHeaders(w)
-
-	w.WriteHeader(int(status))
-	jsonapi.MarshalErrors(w, errs)
+	return &jsonapi.ErrorsPayload{Errors: errs}
 }
 
-func RenderResponse(w http.ResponseWriter, res interface{}) {
-	setSSEHeaders(w)
-	err := json.NewEncoder(w).Encode(res)
-	if err != nil {
-		panic(errors.Wrap(err, "failed to render response"))
-	}
-}
+func ServeEvents(w http.ResponseWriter, r *http.Request, makeResponse func() interface{}) {
+	SetSSEHeaders(w)
 
-func ServeEvents(w http.ResponseWriter, r *http.Request, render func() bool) {
 	for {
-		rendered := render()
+		resp := makeResponse()
+		writeEvent(w, resp)
 		w.(http.Flusher).Flush()
-		if rendered {
-			return
-		}
 
 		// Check for client disconnection using the context
 		select {
@@ -58,9 +43,25 @@ func ServeEvents(w http.ResponseWriter, r *http.Request, render func() bool) {
 	}
 }
 
-func setSSEHeaders(w http.ResponseWriter) {
+func SetSSEHeaders(w http.ResponseWriter) {
 	// set the Content-Type header for SSE
 	w.Header().Set("Content-Type", ContentType)
 	w.Header().Set("Cache-Control", CacheControl)
 	w.Header().Set("Connection", Connection)
+}
+
+func writeEvent(w http.ResponseWriter, data interface{}) {
+	dataBytes, err := json.Marshal(data)
+	if err != nil {
+		panic(errors.Wrap(err, "failed to marshal response", logan.F{
+			"data": data,
+		}))
+	}
+
+	_, err = fmt.Fprintf(w, "data: %s\n\n", string(dataBytes))
+	if err != nil {
+		panic(errors.Wrap(err, "failed to write data", logan.F{
+			"data": data,
+		}))
+	}
 }

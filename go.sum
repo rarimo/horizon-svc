@@ -1347,8 +1347,8 @@ github.com/rarimo/go-merkle v0.0.0-20231004122345-36fa49031c66 h1:1KAU4rfWWJwAJ/
 github.com/rarimo/go-merkle v0.0.0-20231004122345-36fa49031c66/go.mod h1:5Pt9Lk8w7fWhyRO/NMb5x8DRhF2lESRVPT5uOlezInQ=
 github.com/rarimo/near-go v0.0.0-20231018141257-af5322bd02a9 h1:ofKE/QCKuXWd90FUcqbIZbHlsWXUMy5XaqDEGJzVADQ=
 github.com/rarimo/near-go v0.0.0-20231018141257-af5322bd02a9/go.mod h1:uu8kOPvUtELVCXIiobEyZO6684ZtHc7qewAsWViXRVA=
-github.com/rarimo/rarimo-core v1.0.6 h1:b1V6OSoI4i8CVnF3lVluH6XdYLswK/tUBjgnbrPvgG8=
-github.com/rarimo/rarimo-core v1.0.6/go.mod h1:Onkd0EJP94hw4dT/2KH7QXRwDG4eIGeaMffSjA1i6/s=
+github.com/rarimo/rarimo-core v1.0.7-0.20231015135728-36de84c73c67 h1:0TJ1YitngTSh4rzTBtWQtGgvNJ4VOvdz7Rdk1j1uzGU=
+github.com/rarimo/rarimo-core v1.0.7-0.20231015135728-36de84c73c67/go.mod h1:Onkd0EJP94hw4dT/2KH7QXRwDG4eIGeaMffSjA1i6/s=
 github.com/rarimo/solana-program-go v1.0.0 h1:i64ykqd0quN2FHeukJSzs4XuMHkOpGYS9i5lR4UBH+4=
 github.com/rarimo/solana-program-go v1.0.0/go.mod h1:/5bSwRXg2ERN8rSMjp2rsoOnaW6pzqX8FkQ4SCnDPjk=
 github.com/rarimo/xo v1.0.6-0.20231005111658-6ba1ce8f056a h1:aqz/1mU+rK/xLqf2/NHu+0fUGbVNf+9DYFI70fQo0M0=

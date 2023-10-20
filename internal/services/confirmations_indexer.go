@@ -17,7 +17,7 @@ func RunConfirmationsIndexer(ctx context.Context, cfg config.Config) {
 	cindexer := &confirmationsIndexer{
 		log:        cfg.Log().WithField("who", cfg.ConfirmationsIndexer().RunnerName),
 		rarimocore: rarimocore.NewQueryClient(cfg.Cosmos()),
-		storage:    cfg.CachedStorage(),
+		storage:    cfg.CachedStorage().Clone(),
 	}
 
 	msgs.NewConsumer(

@@ -6,3 +6,4 @@ docs/web_deploy
 vendor/
 public/
 /configs/*.local.yaml
+genesis.json

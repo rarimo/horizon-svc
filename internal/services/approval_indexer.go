@@ -17,7 +17,7 @@ func RunApprovalIndexer(ctx context.Context, cfg config.Config) {
 	aindexer := &approvalIndexer{
 		log:        cfg.Log().WithField("who", cfg.ApprovalsIndexer().RunnerName),
 		rarimocore: rarimocore.NewQueryClient(cfg.Cosmos()),
-		storage:    cfg.CachedStorage(),
+		storage:    cfg.CachedStorage().Clone(),
 	}
 
 	msgs.NewConsumer(
