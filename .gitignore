@@ -1,7 +1,9 @@
 .vscode/
 .idea/
 config.*.yaml
+configs/*.local.yaml
 docs/node_modules
 docs/web_deploy
 vendor/
 public/
+genesis.json
