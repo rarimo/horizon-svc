@@ -84,7 +84,6 @@ func Run(args []string) {
 			defer func() {
 				if rvr := recover(); rvr != nil {
 					logan.New().WithRecover(rvr).Error("service panicked")
-					//cancel()
 				}
 			}()
 
