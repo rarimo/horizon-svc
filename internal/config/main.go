@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/rarimo/near-go/nearprovider"
 	"net/http"
 
 	"github.com/rarimo/horizon-svc/internal/data/cachedpg"
@@ -29,6 +30,7 @@ type Config interface {
 	ipfs.IPFSer
 	rd.Rediser
 	mem.Chainer
+	nearprovider.Nearer
 
 	NewStorage() data.Storage
 	CachedStorage() data.Storage
@@ -38,23 +40,23 @@ type Config interface {
 	Tendermint() *thttp.HTTP
 	Cosmos() *grpc.ClientConn
 	TransfersIndexer() TransfersIndexerConfig
-	EVM() *evmConfig
-	Solana() *solanaConfig
-	Near() *nearConfig
 
 	BlockRangeProducer() *BlockRangesProducerConfig
 
 	RarimoCoreProducer() *RarimoCoreProducerConfig
-	ConfirmationsIndexer() ConfirmationsIndexerCfg
-	ApprovalsIndexer() ApprovalsIndexerCfg
-	RejectionsIndexer() RejectionsIndexerCfg
-	VotesIndexer() VotesIndexerCfg
+	ConfirmationsIndexer() ConfirmationsIndexerConfig
+	ApprovalsIndexer() ApprovalsIndexerConfig
+	RejectionsIndexer() RejectionsIndexerConfig
+	VotesIndexer() VotesIndexerConfig
 
 	TokenManagerProducer() *TokenManagerProducerConfig
 	ItemsIndexer() ItemsIndexerConfig
 	CollectionsIndexer() CollectionsIndexerConfig
 
-	Genesis() GenesisCfg
+	Genesis() GenesisConfig
+
+	BridgeProducer() *BridgeProducerConfig
+	WithdrawalsIndexer() *WithdrawalsIndexerConfig
 }
 
 type config struct {
@@ -65,6 +67,7 @@ type config struct {
 	ipfs.IPFSer
 	rd.Rediser
 	mem.Chainer
+	nearprovider.Nearer
 
 	chainGateway         comfig.Once
 	chains               comfig.Once
@@ -73,9 +76,6 @@ type config struct {
 	cosmos               comfig.Once
 	core                 comfig.Once
 	transfersIndexer     comfig.Once
-	evm                  comfig.Once
-	solana               comfig.Once
-	near                 comfig.Once
 	blockRangeProducer   comfig.Once
 	rarimocoreProducer   comfig.Once
 	tokenmanagerProducer comfig.Once
@@ -87,20 +87,24 @@ type config struct {
 	collectionsIndexer   comfig.Once
 	cachedstorage        comfig.Once
 	genesis              comfig.Once
+	bridgeProducer       comfig.Once
+	withdrawalsIndexer   comfig.Once
 
 	getter kv.Getter
 }
 
 func New(getter kv.Getter) Config {
+	logger := comfig.NewLogger(getter, comfig.LoggerOpts{})
 	return &config{
 		getter:     getter,
+		Logger:     logger,
 		Databaser:  pgdb.NewDatabaser(getter),
 		Copuser:    copus.NewCopuser(getter),
 		Listenerer: comfig.NewListenerer(getter),
-		Logger:     comfig.NewLogger(getter, comfig.LoggerOpts{}),
 		Rediser:    rd.NewRediser(getter),
 		IPFSer:     ipfs.NewIPFSer(getter),
 		Chainer:    mem.NewChainer(getter),
+		Nearer:     nearprovider.NewNearer(getter, logger.Log()),
 	}
 }
 

@@ -17,7 +17,7 @@ func RunApprovalIndexer(ctx context.Context, cfg config.Config) {
 	aindexer := &approvalIndexer{
 		log:        cfg.Log().WithField("who", cfg.ApprovalsIndexer().RunnerName),
 		rarimocore: rarimocore.NewQueryClient(cfg.Cosmos()),
-		storage:    cfg.CachedStorage(),
+		storage:    cfg.CachedStorage().Clone(),
 	}
 
 	msgs.NewConsumer(
@@ -43,7 +43,7 @@ func (p *approvalIndexer) Handle(ctx context.Context, msgs []msgs.Message) error
 		approvals = append(approvals, data.Approval{
 			TransferIndex:     []byte(amsg.OperationID),
 			RarimoTransaction: data.MustDBHash(amsg.TransactionHash),
-			CreatedAt:         time.Now(),
+			CreatedAt:         time.Now().UTC(),
 		})
 	}
 

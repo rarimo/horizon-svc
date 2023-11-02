@@ -8,14 +8,14 @@ import (
 	"gitlab.com/distributed_lab/lorem"
 )
 
-type RejectionsIndexerCfg struct {
+type RejectionsIndexerConfig struct {
 	RunnerName         string              `fig:"runner_name"`
 	RejectionsConsumer msgs.ConsumerConfig `fig:"-"`
 }
 
-func (c *config) RejectionsIndexer() RejectionsIndexerCfg {
+func (c *config) RejectionsIndexer() RejectionsIndexerConfig {
 	return c.rejectionsIndexer.Do(func() interface{} {
-		var cfg RejectionsIndexerCfg
+		var cfg RejectionsIndexerConfig
 		yamlName := "rejections_indexer"
 
 		err := figure.
@@ -36,5 +36,5 @@ func (c *config) RejectionsIndexer() RejectionsIndexerCfg {
 		}).Consumer()
 
 		return cfg
-	}).(RejectionsIndexerCfg)
+	}).(RejectionsIndexerConfig)
 }

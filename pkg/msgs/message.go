@@ -156,6 +156,13 @@ func (m *Message) MustSeedRemovedMessage() (msg SeedRemovedMessage) {
 	return
 }
 
+func (m *Message) MustWithdrawalMessage() (msg WithdrawalMsg) {
+	rm := mustUnmarshal(m.raw, &msg)
+	assertType(rm.Type, MessageTypeWithdrawal)
+	m.typ = rm.Type
+	return
+}
+
 func mustUnmarshal(raw json.RawMessage, v interface{}) rawMessage {
 	rm := rawMessage{
 		Raw: v,

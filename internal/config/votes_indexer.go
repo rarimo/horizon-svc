@@ -8,14 +8,14 @@ import (
 	"gitlab.com/distributed_lab/lorem"
 )
 
-type VotesIndexerCfg struct {
+type VotesIndexerConfig struct {
 	RunnerName    string              `fig:"runner_name"`
 	VotesConsumer msgs.ConsumerConfig `fig:"-"`
 }
 
-func (c *config) VotesIndexer() VotesIndexerCfg {
+func (c *config) VotesIndexer() VotesIndexerConfig {
 	return c.votesIndexer.Do(func() interface{} {
-		var cfg VotesIndexerCfg
+		var cfg VotesIndexerConfig
 		yamlName := "votes_indexer"
 
 		err := figure.
@@ -36,5 +36,5 @@ func (c *config) VotesIndexer() VotesIndexerCfg {
 		}).Consumer()
 
 		return cfg
-	}).(VotesIndexerCfg)
+	}).(VotesIndexerConfig)
 }

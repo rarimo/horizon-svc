@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"github.com/rarimo/horizon-svc/internal/services/bridge_producer"
 	"os"
 	"os/signal"
 	"sync"
@@ -40,6 +41,7 @@ func Run(args []string) {
 	// commands to run everything in the same instance
 	tokenmanagerIndexerCmd := runCmd.Command("tokenmanager_indexing", "run routines to index tokenmanager events (collections, items)")
 	rarimocoreIndexerCmd := runCmd.Command("rarimocore_indexing", "run routines to index rarimocore events (transfers, votes, confirmations etc.)")
+	bridgeIndexerCmd := runCmd.Command("bridge_indexing", "run routines to index bridge events (withdrawals)")
 
 	// block range producer can be run multi-purposely
 	blockRangeProducerCmd := runCmd.Command("block_range_producer", "run block range producer")
@@ -56,6 +58,10 @@ func Run(args []string) {
 	tokenmanagerOpProducerCmd := runCmd.Command("tokenmanager_operations_producer", "run tokenmanager operations producer (collections, items)")
 	itemsIndexerCmd := runCmd.Command("items_indexer", "run items' events indexer")
 	collectionsIndexerCmd := runCmd.Command("collections_indexer", "run collections' events indexer")
+
+	// routines for indexing bridge contracts
+	bridgeProducerCmd := runCmd.Command("bridge_events_producer", "run bridge events producer")
+	withdrawalsIndexerCmd := runCmd.Command("withdrawals_indexer", "run withdrawals indexer")
 
 	migrateCmd := app.Command("migrate", "migrate command")
 	migrateUpCmd := migrateCmd.Command("up", "migrate db up")
@@ -90,6 +96,7 @@ func Run(args []string) {
 		cfg.Log().Info("starting API")
 		run(api.Run)
 	case tokenmanagerIndexerCmd.FullCommand():
+		ParseAndSaveGenesis(ctx, cfg)
 		cfg.Log().Info("starting tokenmanager indexers")
 		run(services.RunBlockRangeProducer)
 		run(services.RunTokenManagerEventsProducer)
@@ -104,6 +111,10 @@ func Run(args []string) {
 		run(services.RunRejectionIndexer)
 		run(services.RunConfirmationsIndexer)
 		run(services.RunVotesIndexer)
+	case bridgeIndexerCmd.FullCommand():
+		cfg.Log().Info("starting bridge indexers")
+		run(bridge_producer.RunBridgeEventsProducer)
+		run(services.RunWithdrawalsIndexer)
 	case blockRangeProducerCmd.FullCommand():
 		cfg.Log().Info("starting block range producer")
 		run(services.RunBlockRangeProducer)
@@ -114,9 +125,11 @@ func Run(args []string) {
 		cfg.Log().Info("starting tokenmanager operations producer")
 		run(services.RunTokenManagerEventsProducer)
 	case itemsIndexerCmd.FullCommand():
+		ParseAndSaveGenesis(ctx, cfg)
 		cfg.Log().Info("starting items indexer")
 		run(services.RunItemsIndexer)
 	case collectionsIndexerCmd.FullCommand():
+		ParseAndSaveGenesis(ctx, cfg)
 		cfg.Log().Info("starting collection indexer")
 		run(services.RunCollectionsIndexer)
 	case votesIndexerCmd.FullCommand():
@@ -134,6 +147,12 @@ func Run(args []string) {
 	case confirmationsIndexerCmd.FullCommand():
 		cfg.Log().Info("starting confirmations indexer")
 		run(services.RunConfirmationsIndexer)
+	case withdrawalsIndexerCmd.FullCommand():
+		cfg.Log().Info("starting withdrawals indexer")
+		run(services.RunWithdrawalsIndexer)
+	case bridgeProducerCmd.FullCommand():
+		cfg.Log().Info("starting bridge events producer")
+		run(bridge_producer.RunBridgeEventsProducer)
 	case migrateUpCmd.FullCommand():
 		if err := MigrateUp(cfg); err != nil {
 			panic(errors.Wrap(err, "failed to migrate up"))

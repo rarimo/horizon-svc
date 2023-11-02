@@ -8,14 +8,14 @@ import (
 	"gitlab.com/distributed_lab/lorem"
 )
 
-type ConfirmationsIndexerCfg struct {
+type ConfirmationsIndexerConfig struct {
 	RunnerName            string              `fig:"runner_name"`
 	ConfirmationsConsumer msgs.ConsumerConfig `fig:"confirmations_consumer"`
 }
 
-func (c *config) ConfirmationsIndexer() ConfirmationsIndexerCfg {
+func (c *config) ConfirmationsIndexer() ConfirmationsIndexerConfig {
 	return c.confirmationsIndexer.Do(func() interface{} {
-		var result ConfirmationsIndexerCfg
+		var result ConfirmationsIndexerConfig
 		yamlName := "confirmations_indexer"
 
 		err := figure.
@@ -36,5 +36,5 @@ func (c *config) ConfirmationsIndexer() ConfirmationsIndexerCfg {
 		}).Consumer()
 
 		return result
-	}).(ConfirmationsIndexerCfg)
+	}).(ConfirmationsIndexerConfig)
 }

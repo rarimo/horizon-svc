@@ -1,0 +1,34 @@
+get:
+  summary: Withdrawal by deposit transaction hash
+  # security: TODO
+  description: >
+    Returns information about the particular withdrawal.
+  operationId: withdrawalByHash
+  tags:
+    - Transfers
+  parameters:
+    - in: path
+      name: 'hash'
+      required: true
+      description: The transaction hash of the deposit
+      schema:
+        type: string
+        example: 1
+  responses:
+    '200':
+      description: OK
+      content:
+        application/vnd.api+json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/Withdrawal'
+    '400':
+      $ref: '#/components/responses/invalidParameter.yaml'
+    '404':
+      $ref: '#/components/responses/notFound.yaml'
+    '500':
+      $ref: '#/components/responses/internalError.yaml'

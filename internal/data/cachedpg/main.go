@@ -19,11 +19,19 @@ type Storage struct {
 	cache *marshaler.Marshaler
 }
 
-func NewStorage(log *logan.Entry, raw data.Storage, redisClient *redis.Client) *Storage {
+func NewStorage(log *logan.Entry, raw data.Storage, redisClient *redis.Client) data.Storage {
 	return &Storage{
 		log:   log,
 		raw:   raw,
 		cache: marshaler.New(cache.New[any](redisstore.NewRedis(redisClient))),
+	}
+}
+
+func (s *Storage) Clone() data.Storage {
+	return &Storage{
+		log:   s.log,
+		raw:   s.raw.Clone(),
+		cache: s.cache,
 	}
 }
 
@@ -106,6 +114,14 @@ func (s *Storage) ItemChainMappingQ() data.ItemChainMappingQ {
 	return &ItemChainMappingQ{
 		log:   s.log.WithField("who", "item-chain-mappings-cached-q"),
 		raw:   s.raw.ItemChainMappingQ(),
+		cache: s.cache,
+	}
+}
+
+func (s *Storage) WithdrawalQ() data.WithdrawalQ {
+	return &WithdrawalQ{
+		log:   s.log.WithField("who", "withdrawal-cached-q"),
+		raw:   s.raw.WithdrawalQ(),
 		cache: s.cache,
 	}
 }

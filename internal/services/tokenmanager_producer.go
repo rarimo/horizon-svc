@@ -46,7 +46,7 @@ func RunTokenManagerEventsProducer(ctx context.Context, cfg config.Config) {
 		itemEventsPublisher:       itemEventsPublisher,
 		collectionEventsPublisher: collectionEventsPublisher,
 		kv:                        redis.NewKeyValueProvider(cfg),
-		txQ:                       cfg.CachedStorage().TransactionQ(),
+		txQ:                       cfg.CachedStorage().Clone().TransactionQ(),
 	}
 
 	msgs.NewConsumer(
@@ -116,7 +116,7 @@ func (p *tokenManagerOpProducer) publishBlockEvents(ctx context.Context, blockFr
 	}
 
 	if cursorKV == nil {
-		now := time.Now()
+		now := time.Now().UTC()
 		cursorKV = &data.KeyValue{
 			Key:       cursorKey,
 			Value:     strconv.FormatInt(blockFrom, 10),
@@ -182,7 +182,7 @@ func (p *tokenManagerOpProducer) publishBlockEvents(ctx context.Context, blockFr
 			Key:       cursorKV.Key,
 			Value:     strconv.FormatInt(block, 10),
 			CreatedAt: cursorKV.CreatedAt,
-			UpdatedAt: time.Now(),
+			UpdatedAt: time.Now().UTC(),
 		})
 		if err != nil {
 			return errors.Wrap(err, "failed to update block range cursor", logan.F{
@@ -206,7 +206,7 @@ func (p *tokenManagerOpProducer) publishTxEvents(ctx context.Context, blockFrom,
 	}
 
 	if blockRangeCursor == nil {
-		now := time.Now()
+		now := time.Now().UTC()
 		blockRangeCursor = &data.KeyValue{
 			Key:       cursorKey,
 			Value:     "1",
@@ -293,7 +293,7 @@ func (p *tokenManagerOpProducer) publishTxEvents(ctx context.Context, blockFrom,
 			Key:       blockRangeCursor.Key,
 			Value:     strconv.Itoa(page),
 			CreatedAt: blockRangeCursor.CreatedAt,
-			UpdatedAt: time.Now(),
+			UpdatedAt: time.Now().UTC(),
 		})
 		if err != nil {
 			return errors.Wrap(err, "failed to update block range cursor", logan.F{

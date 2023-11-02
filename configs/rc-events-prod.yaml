@@ -1,0 +1,27 @@
+log:
+  disable_sentry: true
+  level: debug
+
+db:
+  url: postgres://horizon:horizon@localhost:5432/horizon?sslmode=disable
+
+rarimocore_producer:
+  runner_name: "rarimocore-events-producer"
+  transfers_queue_name: "rarimocore-transfers-q"
+  confirmations_queue_name: "rarimocore-confirmations-q"
+  approvals_queue_name: "rarimocore-approvals-q"
+  rejections_queue_name: "rarimocore-rejections-q"
+  votes_queue_name: "rarimocore-votes-q"
+  block_range_consumer:
+    name: "rarimocore-blockrange-consumer"
+    queue: "rarimocore-blocks-q"
+
+core:
+  addr: "tcp://localhost:26657"
+
+cosmos:
+  addr: "localhost:9090"
+
+redis:
+  addr: "localhost:6379"
+  db: 1

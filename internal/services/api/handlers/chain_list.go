@@ -78,6 +78,11 @@ func ChainList(w http.ResponseWriter, r *http.Request) {
 	networksMap := make(map[string]tokentypes.Network)
 
 	for _, net := range params.Networks {
+		chain := ChainsQ(r).Get(net.Name)
+		if chain == nil {
+			Log(r).WithFields(logan.F{"network": net.Name}).Info("chain not found")
+			continue
+		}
 		networksMap[net.Name] = *net
 	}
 

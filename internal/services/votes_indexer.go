@@ -17,7 +17,7 @@ import (
 func RunVotesIndexer(ctx context.Context, cfg config.Config) {
 	vindexer := &votesIndexer{
 		log:     cfg.Log().WithField("who", cfg.VotesIndexer().RunnerName),
-		storage: cfg.NewStorage(),
+		storage: cfg.NewStorage().Clone(),
 	}
 
 	msgs.NewConsumer(
@@ -41,7 +41,7 @@ func (p *votesIndexer) Handle(ctx context.Context, msgs []msgs.Message) error {
 		vote := data.Vote{
 			TransferIndex:     []byte(vmsg.OperationID),
 			RarimoTransaction: data.MustDBHash(vmsg.TransactionHash),
-			CreatedAt:         time.Now(),
+			CreatedAt:         time.Now().UTC(),
 		}
 
 		switch vmsg.VotingChoice {

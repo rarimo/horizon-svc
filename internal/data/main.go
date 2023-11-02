@@ -7,6 +7,7 @@ import "context"
 //go:generate goimports -w ./
 
 type Storage interface {
+	Clone() Storage
 	Transaction(func() error) error
 	TransferQ() TransferQ
 	ConfirmationQ() ConfirmationQ
@@ -19,6 +20,8 @@ type Storage interface {
 	CollectionChainMappingQ() CollectionChainMappingQ
 	ItemQ() ItemQ
 	ItemChainMappingQ() ItemChainMappingQ
+
+	WithdrawalQ() WithdrawalQ
 }
 
 type TransferQ interface {
@@ -54,6 +57,7 @@ type RejectionQ interface {
 
 type CollectionQ interface {
 	InsertCtx(ctx context.Context, c *Collection) error
+	UpsertCtx(ctx context.Context, c *Collection) error
 	CollectionByIndexCtx(ctx context.Context, index []byte, isForUpdate bool) (*Collection, error)
 	DeleteCtx(ctx context.Context, c *Collection) error
 }
@@ -90,6 +94,11 @@ type ItemChainMappingQ interface {
 }
 
 type SeedQ interface {
+}
+
+type WithdrawalQ interface {
+	InsertBatchCtx(ctx context.Context, withdrawals ...Withdrawal) error
+	WithdrawalByOriginCtx(ctx context.Context, origin []byte, isForUpdate bool) (*Withdrawal, error)
 }
 
 type GorpMigrationQ interface {

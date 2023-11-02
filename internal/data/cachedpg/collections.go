@@ -27,6 +27,10 @@ func (q *CollectionQ) InsertCtx(ctx context.Context, c *data.Collection) error {
 	return q.raw.InsertCtx(ctx, c)
 }
 
+func (q *CollectionQ) UpsertCtx(ctx context.Context, c *data.Collection) error {
+	return q.raw.UpsertCtx(ctx, c)
+}
+
 func (q *CollectionQ) CollectionByIndexCtx(ctx context.Context, index []byte, isForUpdate bool) (*data.Collection, error) {
 	if !isForUpdate {
 		var collection data.Collection

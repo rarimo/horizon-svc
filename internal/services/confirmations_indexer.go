@@ -17,7 +17,7 @@ func RunConfirmationsIndexer(ctx context.Context, cfg config.Config) {
 	cindexer := &confirmationsIndexer{
 		log:        cfg.Log().WithField("who", cfg.ConfirmationsIndexer().RunnerName),
 		rarimocore: rarimocore.NewQueryClient(cfg.Cosmos()),
-		storage:    cfg.CachedStorage(),
+		storage:    cfg.CachedStorage().Clone(),
 	}
 
 	msgs.NewConsumer(
@@ -54,7 +54,7 @@ func (p *confirmationsIndexer) Handle(ctx context.Context, msgs []msgs.Message) 
 			confirmations = append(confirmations, data.Confirmation{
 				TransferIndex:     []byte(transferIndex),
 				RarimoTransaction: data.MustDBHash(cmsg.TransactionHash),
-				CreatedAt:         time.Now(),
+				CreatedAt:         time.Now().UTC(),
 			})
 		}
 	}

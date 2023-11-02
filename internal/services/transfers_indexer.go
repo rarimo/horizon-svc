@@ -22,7 +22,7 @@ func RunTransfersIndexer(ctx context.Context, cfg config.Config) {
 		log:          cfg.Log().WithField("who", cfg.TransfersIndexer().RunnerName),
 		rarimocore:   rarimocore.NewQueryClient(cfg.Cosmos()),
 		tokenmanager: tokenmanager.NewQueryClient(cfg.Cosmos()),
-		storage:      cfg.CachedStorage(),
+		storage:      cfg.CachedStorage().Clone(),
 	}
 
 	msgs.NewConsumer(

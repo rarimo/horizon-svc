@@ -19,7 +19,7 @@ func RunRejectionIndexer(ctx context.Context, cfg config.Config) {
 	rindexer := &rejectionIndexer{
 		log:        cfg.Log().WithField("who", cfg.RejectionsIndexer().RunnerName),
 		rarimocore: rarimocore.NewQueryClient(cfg.Cosmos()),
-		storage:    cfg.CachedStorage(),
+		storage:    cfg.CachedStorage().Clone(),
 	}
 
 	msgs.NewConsumer(
@@ -45,7 +45,7 @@ func (p *rejectionIndexer) Handle(ctx context.Context, msgs []msgs.Message) erro
 		rejections = append(rejections, data.Rejection{
 			TransferIndex:     []byte(rmsg.OperationID),
 			RarimoTransaction: data.MustDBHash(rmsg.TransactionHash),
-			CreatedAt:         time.Now(),
+			CreatedAt:         time.Now().UTC(),
 		})
 	}
 

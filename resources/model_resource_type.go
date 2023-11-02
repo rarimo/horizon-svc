@@ -22,4 +22,5 @@ const (
 	TRANSACTIONS             ResourceType = "transactions"
 	TRANSFERS                ResourceType = "transfers"
 	UNSUBMITTED_TRANSACTIONS ResourceType = "unsubmitted-transactions"
+	WITHDRAWALS              ResourceType = "withdrawals"
 )

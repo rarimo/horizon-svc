@@ -62,6 +62,7 @@ func Run(ctx context.Context, cfg config.Config) {
 		r.Route("/transfers", func(r chi.Router) {
 			r.Get("/", handlers.TransferList)
 			r.Get("/{id}", handlers.TransferByID)
+			r.Get("/{hash}/withdrawal/sse", handlers.WithdrawalByHash)
 		})
 		r.Post("/buildtx", handlers.BuildTx)
 	})
