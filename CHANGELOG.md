@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GET withdrawal by the deposit hash SSE endpoint
 - `withdrawals` table to the database migrations
 - Withdrawals cache querier
+- Rate limiter
 
 ### Changed
 - Refactored parsing of the genesis file for the collections and items indexers to omit race conditions and 

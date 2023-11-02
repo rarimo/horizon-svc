@@ -42,6 +42,10 @@ func Run(ctx context.Context, cfg config.Config) {
 		),
 	)
 
+	if !cfg.RateLimiter().Disabled {
+		r.Use(handlers.NewRateLimitsMiddleware(cfg))
+	}
+
 	r.Route("/v1", func(r chi.Router) {
 		r.Route("/chains", func(r chi.Router) {
 			r.Get("/", handlers.ChainList)

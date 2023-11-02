@@ -1,6 +1,5 @@
 get:
   summary: Transfer list
-  # security: TODO
   description: >
     Returns list of transfer events registered in core.
   operationId: transferList

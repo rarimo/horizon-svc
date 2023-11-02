@@ -1,6 +1,5 @@
 get:
   summary: Transfer by ID
-  # security: TODO
   description: >
     Returns information about the particular transfer.
   operationId: transferByID
