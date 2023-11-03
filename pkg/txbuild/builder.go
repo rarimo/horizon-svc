@@ -11,7 +11,7 @@ import (
 	"github.com/rarimo/near-go/nearclient"
 
 	"github.com/pkg/errors"
-	gobind "github.com/rarimo/evm-bridge-contracts/gobind/contracts/bridge"
+	gobind "github.com/rarimo/evm-bridge-contracts/bindings/contracts/bridge/bridge"
 	"github.com/rarimo/horizon-svc/internal/config"
 	"github.com/rarimo/horizon-svc/internal/data"
 	"github.com/rarimo/horizon-svc/pkg/ethtx"

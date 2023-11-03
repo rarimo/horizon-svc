@@ -21,7 +21,7 @@ require (
 	github.com/near/borsh-go v0.3.1
 	github.com/olegfomenko/solana-go v1.4.2-0.20221104112355-eb3546bb0e15
 	github.com/pkg/errors v0.9.1
-	github.com/rarimo/evm-bridge-contracts v0.0.0-20231009124003-c6406c6a36df
+	github.com/rarimo/evm-bridge-contracts v0.0.0-20231102100615-d322c40d168a
 	github.com/rarimo/near-go v0.0.0-20231018141257-af5322bd02a9
 	github.com/rarimo/rarimo-core v1.0.7-0.20231015135728-36de84c73c67
 	github.com/rarimo/solana-program-go v1.0.0

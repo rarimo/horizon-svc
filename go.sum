@@ -1345,6 +1345,8 @@ github.com/rarimo/cosmos-sdk v0.46.7 h1:jU2PiWzc+19SF02cXM0O0puKPeH1C6Q6t2lzJ9s1
 github.com/rarimo/cosmos-sdk v0.46.7/go.mod h1:fqKqz39U5IlEFb4nbQ72951myztsDzFKKDtffYJ63nk=
 github.com/rarimo/evm-bridge-contracts v0.0.0-20231009124003-c6406c6a36df h1:pmGOo2MsmfFGOPsqkHQWtoXrFS1youiM9SvQY+DPOW0=
 github.com/rarimo/evm-bridge-contracts v0.0.0-20231009124003-c6406c6a36df/go.mod h1:N/wj9/aHId1rIuux3hGm+/KJSci8MPTRY6dl49lJ7y0=
+github.com/rarimo/evm-bridge-contracts v0.0.0-20231102100615-d322c40d168a h1:C+X/q27RAvO+TnGdN5QdkLN2co6E+blRGntv0U9PlmI=
+github.com/rarimo/evm-bridge-contracts v0.0.0-20231102100615-d322c40d168a/go.mod h1:N/wj9/aHId1rIuux3hGm+/KJSci8MPTRY6dl49lJ7y0=
 github.com/rarimo/go-merkle v0.0.0-20231004122345-36fa49031c66 h1:1KAU4rfWWJwAJ/kencagL3k5BXN3HhP004QNkEUgvDE=
 github.com/rarimo/go-merkle v0.0.0-20231004122345-36fa49031c66/go.mod h1:5Pt9Lk8w7fWhyRO/NMb5x8DRhF2lESRVPT5uOlezInQ=
 github.com/rarimo/near-go v0.0.0-20231018141257-af5322bd02a9 h1:ofKE/QCKuXWd90FUcqbIZbHlsWXUMy5XaqDEGJzVADQ=
