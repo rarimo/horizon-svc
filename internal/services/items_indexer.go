@@ -109,7 +109,6 @@ func (p *itemsIndexer) handleItemRemoved(ctx context.Context, msg msgs.ItemRemov
 			})
 		}
 
-		// TODO add state and set status `removed` instead of deleting (to avoid problems with restarting from genesis)
 		err = p.storage.ItemQ().DeleteCtx(ctx, item)
 		if err != nil {
 			return errors.Wrap(err, "failed to delete item", logan.F{

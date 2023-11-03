@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"math/rand"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -109,13 +109,20 @@ func Balance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ape.Render(w, newBalanceResponse(balance))
+	ape.Render(w, newBalanceResponse(req, balance))
 }
 
-func newBalanceResponse(amount *amount.Amount) resources.BalanceResponse {
+func newBalanceResponse(request *balanceRequest, amount *amount.Amount) resources.BalanceResponse {
+	tokenID := request.TokenID
+	if tokenID == "" {
+		tokenID = "0"
+	}
 	return resources.BalanceResponse{
 		Data: resources.Balance{
-			Key: resources.NewKeyInt64(rand.Int63(), resources.BALANCES), // TODO - remove random key after adding aggregation
+			Key: resources.Key{
+				ID:   fmt.Sprintf("%s:%s:%s:%s", request.Index, request.Chain, request.AccountAddress, tokenID),
+				Type: resources.BALANCES,
+			},
 			Attributes: resources.BalanceAttributes{
 				Amount: amount.String(),
 			},

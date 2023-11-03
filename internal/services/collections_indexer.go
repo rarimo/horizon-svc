@@ -95,7 +95,6 @@ func (p *collectionIndexer) handleCollectionRemoved(ctx context.Context, msg msg
 			})
 		}
 
-		// TODO add state and set status `removed` instead of deleting (to avoid problems with restarting from genesis)
 		err = p.storage.CollectionQ().DeleteCtx(ctx, collection)
 		if err != nil {
 			return errors.Wrap(err, "failed to delete collection", logan.F{
