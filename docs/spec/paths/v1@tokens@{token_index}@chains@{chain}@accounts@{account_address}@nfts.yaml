@@ -48,5 +48,7 @@ get:
       $ref: '#/components/responses/invalidParameter'
     401:
       $ref: '#/components/responses/invalidAuth'
+    429:
+      $ref: '#/components/responses/tooManyRequests'
     500:
       $ref: '#/components/responses/internalError'

@@ -1,4 +1,4 @@
-description: Requested resource does not exist.
+description: Rate Limit Exceeded
 content:
   application/vnd.api+json:
     schema:

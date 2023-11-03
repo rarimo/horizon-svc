@@ -25,9 +25,11 @@ get:
             properties:
               data:
                 $ref: '#/components/schemas/Transfer'
-    '400':
-      $ref: '#/components/responses/invalidParameter.yaml'
-    '404':
-      $ref: '#/components/responses/notFound.yaml'
-    '500':
-      $ref: '#/components/responses/internalError.yaml'
+    400:
+      $ref: '#/components/responses/invalidParameter'
+    404:
+      $ref: '#/components/responses/notFound'
+    429:
+      $ref: '#/components/responses/tooManyRequests'
+    500:
+      $ref: '#/components/responses/internalError'

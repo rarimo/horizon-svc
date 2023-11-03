@@ -50,5 +50,7 @@ get:
       $ref: '#/components/responses/invalidAuth'
     404:
       $ref: '#/components/responses/notFound'
+    429:
+      $ref: '#/components/responses/tooManyRequests'
     500:
       $ref: '#/components/responses/internalError'
