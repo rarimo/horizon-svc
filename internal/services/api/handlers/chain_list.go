@@ -59,7 +59,7 @@ func ChainList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params, err := Core(r).TokenManager().GetParams(r.Context())
+	params, err := Core(r).Tokenmanager().GetParams(r.Context())
 	if err != nil {
 		Log(r).WithError(err).Error("failed to get params from token manager")
 		ape.RenderErr(w, problems.InternalError())

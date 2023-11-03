@@ -1,20 +1,20 @@
 parameters:
-  - name: token_index
+  - name: index
     in: path
-    description: Token index from rarimo-core
+    description: Chain index from rarimo-core tokensmanager item list
     required: true
     schema:
       type: string
   - name: chain
     in: path
     description: Chain name
-    example: "Solana, Ethereum, Near"
+    example: "Solana, Goerli, Sepolia, Near"
     required: true
     schema:
       type: string
-  - name: account_address
+  - name: token_id
     in: path
-    description: Account wallet address on chain in chain format
+    description: Token id of NFT
     required: true
     schema:
       type: string
@@ -22,14 +22,8 @@ parameters:
 get:
   tags:
     - Tokens
-  summary: Get NFTs
-  description: |
-    Returns list of NFTs for the particular account.
-  operationId: getNFTs
-  parameters:
-    - $ref: '#/components/parameters/pageLimitParam'
-    - $ref: '#/components/parameters/pageCursorParam'
-
+  summary: Get NFT metadata
+  operationId: getNFTMetadata
   responses:
     200:
       description: Success
@@ -37,17 +31,15 @@ get:
         application/json:
           schema:
             type: object
-            required:
-              - data
             properties:
               data:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Nft'
+                $ref: '#/components/schemas/NftMetadata'
     400:
       $ref: '#/components/responses/invalidParameter'
     401:
       $ref: '#/components/responses/invalidAuth'
+    404:
+      $ref: '#/components/responses/notFound'
     429:
       $ref: '#/components/responses/tooManyRequests'
     500:

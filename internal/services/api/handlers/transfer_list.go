@@ -96,7 +96,7 @@ func createSelector(request transferListRequest) data.TransferSelector {
 		DestinationChain: request.ToChain,
 		Receiver:         request.Receiver,
 		Creator:          request.Creator,
-		TokenIndex:       request.ItemIndex,
+		ItemIndex:        request.ItemIndex,
 		PageCursor:       request.PageCursor,
 		PageSize:         request.PageLimit,
 		Sort:             request.Sorts,

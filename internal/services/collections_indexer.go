@@ -3,12 +3,12 @@ package services
 import (
 	"context"
 	"database/sql"
+	"github.com/rarimo/horizon-svc/internal/core"
 	"time"
 
 	"github.com/rarimo/horizon-svc/internal/config"
 	"github.com/rarimo/horizon-svc/internal/data"
 	"github.com/rarimo/horizon-svc/pkg/msgs"
-	tokenmanager "github.com/rarimo/rarimo-core/x/tokenmanager/types"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
@@ -18,7 +18,7 @@ func RunCollectionsIndexer(ctx context.Context, cfg config.Config) {
 
 	handler := &collectionIndexer{
 		log:          log,
-		tokenmanager: tokenmanager.NewQueryClient(cfg.Cosmos()),
+		tokenmanager: cfg.Core().Tokenmanager(),
 		storage:      cfg.CachedStorage().Clone(),
 		chains:       cfg.ChainsQ(),
 		saver:        NewTokenmanagerSaver(cfg),
@@ -33,7 +33,7 @@ func RunCollectionsIndexer(ctx context.Context, cfg config.Config) {
 
 type collectionIndexer struct {
 	log          *logan.Entry
-	tokenmanager tokenmanager.QueryClient
+	tokenmanager core.Tokenmanager
 	storage      data.Storage
 	chains       data.ChainsQ
 	saver        *TokenmanagerSaver
@@ -70,17 +70,12 @@ func (p *collectionIndexer) handle(ctx context.Context, raw msgs.Message) error 
 }
 
 func (p *collectionIndexer) handleCollectionCreated(ctx context.Context, msg msgs.CollectionCreatedMessage) error {
-	collectionResp, err := p.tokenmanager.Collection(ctx, &tokenmanager.QueryGetCollectionRequest{
-		Index: msg.Index,
-	})
-
+	collection, err := p.tokenmanager.GetCollection(ctx, msg.Index)
 	if err != nil {
-		return errors.Wrap(err, "failed to get collection from core", logan.F{
-			"index": msg.Index,
-		})
+		return errors.Wrap(err, "failed to get collection")
 	}
 
-	_, err = p.saver.SaveCollection(ctx, collectionResp.Collection)
+	_, err = p.saver.SaveCollection(ctx, *collection)
 	return err
 }
 
@@ -133,34 +128,26 @@ func (p *collectionIndexer) handleCollectionDataCreated(ctx context.Context, msg
 		})
 	}
 
-	collectionDataResp, err := p.tokenmanager.CollectionDataByCollectionForChain(ctx,
-		&tokenmanager.QueryGetCollectionDataByCollectionForChainRequest{
-			CollectionIndex: string(collection.Index),
-			Chain:           network.Name,
-		})
+	coreCollection, err := p.tokenmanager.GetCollectionDataByCollectionForChain(ctx, string(collection.Index), network.Name)
 	if err != nil {
-		// FIXME(hp): handle not found and precondition failed ?
-		return errors.Wrap(err, "failed to get collection data from core", logan.F{
-			"index": msg.CollectionIndex,
-			"chain": network.Name,
-		})
+		return errors.Wrap(err, "failed to get collection data")
 	}
 
 	now := time.Now().UTC()
 	err = p.storage.CollectionChainMappingQ().InsertCtx(ctx, &data.CollectionChainMapping{
 		Collection: collection.ID,
 		Network:    network.ID,
-		Address:    []byte(collectionDataResp.Data.Index.Address),
+		Address:    []byte(coreCollection.Index.Address),
 		TokenType: sql.NullInt64{
-			Int64: int64(collectionDataResp.Data.TokenType),
+			Int64: int64(coreCollection.TokenType),
 			Valid: true,
 		},
 		Wrapped: sql.NullBool{
-			Bool:  collectionDataResp.Data.Wrapped,
+			Bool:  coreCollection.Wrapped,
 			Valid: true,
 		},
 		Decimals: sql.NullInt64{
-			Int64: int64(collectionDataResp.Data.Decimals),
+			Int64: int64(coreCollection.Decimals),
 			Valid: true,
 		},
 		CreatedAt: now,
@@ -210,29 +197,21 @@ func (p *collectionIndexer) handleCollectionDataUpdated(ctx context.Context, msg
 		})
 	}
 
-	collectionData, err := p.tokenmanager.CollectionDataByCollectionForChain(ctx,
-		&tokenmanager.QueryGetCollectionDataByCollectionForChainRequest{
-			CollectionIndex: string(collection.Index),
-			Chain:           network.Name,
-		})
+	collectionData, err := p.tokenmanager.GetCollectionDataByCollectionForChain(ctx, string(collection.Index), network.Name)
 	if err != nil {
-		// FIXME(hp): handle not found and precondition failed ?
-		return errors.Wrap(err, "failed to get collection data from core", logan.F{
-			"index": msg.CollectionIndex,
-			"chain": network.Name,
-		})
+		return errors.Wrap(err, "failed to get collection data")
 	}
 
 	ccm.TokenType = sql.NullInt64{
-		Int64: int64(collectionData.Data.TokenType),
+		Int64: int64(collectionData.TokenType),
 		Valid: true,
 	}
 	ccm.Wrapped = sql.NullBool{
-		Bool:  collectionData.Data.Wrapped,
+		Bool:  collectionData.Wrapped,
 		Valid: true,
 	}
 	ccm.Decimals = sql.NullInt64{
-		Int64: int64(collectionData.Data.Decimals),
+		Int64: int64(collectionData.Decimals),
 		Valid: true,
 	}
 

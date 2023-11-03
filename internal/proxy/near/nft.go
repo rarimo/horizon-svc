@@ -58,26 +58,3 @@ func (e *nearProxy) getNfts(ctx context.Context, chain, tokenAddress, accountAdd
 
 	return result, nil
 }
-
-func (e *nearProxy) getCollectionMetadata(ctx context.Context, tokenAddress string) (*common.NftContractMetadataView, error) {
-	tokenAddr, err := hexutil.Decode(tokenAddress)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to decode token address")
-	}
-
-	resp, err := e.cli.ContractViewCallFunction(
-		ctx,
-		string(tokenAddr),
-		common.ContractNftMetadata,
-		"",
-		nearclient.FinalityFinal(),
-	)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get nft contract metadata")
-	}
-	var result common.NftContractMetadataView
-	if err := json.Unmarshal(resp.Result, &result); err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal nft contract metadata view")
-	}
-	return &result, nil
-}

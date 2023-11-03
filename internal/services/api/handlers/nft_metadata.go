@@ -16,22 +16,22 @@ import (
 )
 
 type nftMetadataRequest struct {
-	Chain      string `url:"chain"`
-	TokenIndex string `url:"token_index"`
-	TokenID    string `url:"token_id"`
+	Chain     string `url:"chain"`
+	ItemIndex string `url:"index"`
+	TokenID   string `url:"token_id"`
 }
 
 func newNftMetadataRequest(r *http.Request) (*nftMetadataRequest, error) {
 	var request nftMetadataRequest
 
 	request.Chain = chi.URLParam(r, "chain")
-	request.TokenIndex = chi.URLParam(r, "token_index")
+	request.ItemIndex = chi.URLParam(r, "index")
 	request.TokenID = chi.URLParam(r, "token_id")
 
 	return &request, validation.Errors{
-		"chain":       validation.Validate(request.Chain, validation.Required),
-		"token_index": validation.Validate(request.TokenIndex, validation.Required),
-		"token_id":    validation.Validate(request.TokenID, validation.Required),
+		"chain":    validation.Validate(request.Chain, validation.Required),
+		"index":    validation.Validate(request.ItemIndex, validation.Required),
+		"token_id": validation.Validate(request.TokenID, validation.Required),
 	}.Filter()
 }
 
@@ -43,7 +43,7 @@ func NftMetadata(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	item, err := Core(r).TokenManager().GetItem(r.Context(), req.TokenIndex)
+	item, err := Core(r).Tokenmanager().GetItem(r.Context(), req.ItemIndex)
 	if err != nil {
 		Log(r).WithError(err).Error("failed to get item from token manager")
 		ape.RenderErr(w, problems.InternalError())
@@ -52,7 +52,7 @@ func NftMetadata(w http.ResponseWriter, r *http.Request) {
 
 	if item == nil {
 		ape.RenderErr(w, problems.BadRequest(validation.Errors{
-			"token_index": errors.New("no item with such index"),
+			"index": errors.New("no item with such index"),
 		})...)
 		return
 	}
@@ -65,7 +65,7 @@ func NftMetadata(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collectionData, err := Core(r).TokenManager().CollectionData(r.Context(), onChainItem.Chain, onChainItem.Address)
+	collectionData, err := Core(r).Tokenmanager().GetCollectionData(r.Context(), onChainItem.Chain, onChainItem.Address)
 	if err != nil {
 		Log(r).WithError(err).Error("failed to get collection")
 		ape.RenderErr(w, problems.InternalError())
@@ -84,7 +84,7 @@ func NftMetadata(w http.ResponseWriter, r *http.Request) {
 
 	if !isNftTokenType(collectionData.TokenType) {
 		ape.RenderErr(w, problems.BadRequest(validation.Errors{
-			"token_index": errors.Wrap(err, "item is not of NFT type"),
+			"index": errors.Wrap(err, "item is not of NFT type"),
 		})...)
 		return
 	}

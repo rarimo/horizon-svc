@@ -9,7 +9,6 @@ import (
 	"github.com/rarimo/horizon-svc/internal/data/cachedpg"
 
 	"github.com/go-chi/chi"
-	"github.com/rarimo/horizon-svc/internal/chain_gateway"
 	"github.com/rarimo/horizon-svc/internal/config"
 	"github.com/rarimo/horizon-svc/internal/proxy"
 	"github.com/rarimo/horizon-svc/internal/services/api/handlers"
@@ -37,7 +36,7 @@ func Run(ctx context.Context, cfg config.Config) {
 				proxy.New(
 					cfg.ChainsQ(),
 					cfg.MetadataFetcher(),
-					chain_gateway.New(cfg.ChainGateway())),
+				),
 			),
 		),
 	)
@@ -51,13 +50,12 @@ func Run(ctx context.Context, cfg config.Config) {
 			r.Get("/", handlers.ChainList)
 		})
 
-		r.Route("/tokens", func(r chi.Router) { // TODO v2: aggregations+filters
-			r.Route("/{token_index}", func(r chi.Router) {
+		r.Route("/items", func(r chi.Router) {
+			r.Route("/{index}", func(r chi.Router) {
 				r.Route("/chains", func(r chi.Router) {
 					r.Route("/{chain}", func(r chi.Router) {
 						r.Get("/balance/{account_address}", handlers.Balance)
 						r.Get("/nfts/{token_id}/metadata", handlers.NftMetadata)
-						r.Get("/accounts/{account_address}/nfts", handlers.NftList)
 					})
 				})
 			})

@@ -34,7 +34,6 @@ type Config interface {
 
 	NewStorage() data.Storage
 	CachedStorage() data.Storage
-	ChainGateway() *ChainGateway
 	MetadataFetcher() metadata_fetcher.Client
 	Core() core.Core
 	Tendermint() *thttp.HTTP

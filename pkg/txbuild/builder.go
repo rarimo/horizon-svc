@@ -40,7 +40,7 @@ func NewMultiBuilder(cfg config.Config) *MultiBuilder {
 		panic(errors.Wrap(err, "failed to get bridge abi"))
 	}
 
-	networks, err := cfg.Core().TokenManager().GetParams(context.Background())
+	networks, err := cfg.Core().Tokenmanager().GetParams(context.Background())
 	if err != nil {
 		panic(errors.Wrap(err, "failed to get networks"))
 	}

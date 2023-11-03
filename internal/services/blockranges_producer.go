@@ -52,7 +52,8 @@ func RunBlockRangeProducer(ctx context.Context, cfg config.Config) {
 		producer.produceOnce,
 		cfg.BlockRangeProducer().BlockTime,
 		time.Second*10,
-		time.Minute)
+		time.Minute,
+	)
 }
 
 type blockRangeProducer struct {

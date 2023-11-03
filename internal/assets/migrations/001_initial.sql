@@ -38,7 +38,7 @@ create table if not exists transfers(
     amount int_256 not null,
     bundle_data bytea,
     bundle_salt bytea,
-    token_index text not null
+    item_index text not null
 );
 
 create table if not exists votes(

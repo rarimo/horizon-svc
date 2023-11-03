@@ -100,10 +100,10 @@ func mustToTransferResource(transfer data.Transfer) resources.Transfer {
 					Type: resources.ACCOUNT_EXTERNAL_IDS,
 				},
 			},
-			Token: &resources.Relation{
+			Item: &resources.Relation{
 				Data: &resources.Key{
-					ID:   transfer.TokenIndex,
-					Type: resources.TOKENS,
+					ID:   transfer.ItemIndex,
+					Type: resources.ITEMS,
 				},
 			},
 			Tx: &resources.Relation{
