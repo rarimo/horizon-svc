@@ -20,7 +20,7 @@ type TransferSelector struct {
 	Creator          *string    `json:"creator,omitempty"`
 	Before           *time.Time `json:"bridged_before,omitempty"`
 	After            *time.Time `json:"bridged_after,omitempty"`
-	TokenIndex       *string    `json:"token_index,omitempty"`
+	ItemIndex        *string    `json:"item_index,omitempty"`
 
 	PageCursor uint64     `json:"page_number,omitempty"`
 	PageSize   uint64     `json:"page_size,omitempty"`

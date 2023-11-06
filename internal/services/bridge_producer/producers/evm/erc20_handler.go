@@ -6,7 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
-	gobind "github.com/rarimo/evm-bridge-contracts/gobind/contracts/interfaces/handlers"
+	erc20 "github.com/rarimo/evm-bridge-contracts/bindings/contracts/interfaces/handlers/ierc20handler"
 	"github.com/rarimo/horizon-svc/internal/data/redis"
 	"github.com/rarimo/horizon-svc/internal/services"
 	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/producers/cursorer"
@@ -19,13 +19,13 @@ type erc20Handler struct {
 	log       *logan.Entry
 	cli       *ethclient.Client
 	chain     string
-	handler   *gobind.IERC20Handler
+	handler   *erc20.IERC20Handler
 	cursorer  types.Cursorer
 	publisher services.QPublisher
 }
 
 func newERC20Handler(log *logan.Entry, cli *ethclient.Client, chain string, kv *redis.KeyValueProvider, publisher services.QPublisher, contractAddress common.Address, cursorKey, initialCursor string) Handler {
-	handler, err := gobind.NewIERC20Handler(contractAddress, cli)
+	handler, err := erc20.NewIERC20Handler(contractAddress, cli)
 	if err != nil {
 		panic(errors.Wrap(err, "failed to init handler", logan.F{
 			"handler": HandlerERC20,

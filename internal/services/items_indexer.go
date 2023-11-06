@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"encoding/json"
+	"github.com/rarimo/horizon-svc/internal/core"
 	"time"
 
 	"github.com/rarimo/horizon-svc/internal/config"
@@ -18,7 +19,7 @@ func RunItemsIndexer(ctx context.Context, cfg config.Config) {
 
 	handler := &itemsIndexer{
 		log:          log,
-		tokenmanager: tokenmanager.NewQueryClient(cfg.Cosmos()),
+		tokenmanager: cfg.Core().Tokenmanager(),
 		storage:      cfg.CachedStorage(),
 		chains:       cfg.ChainsQ(),
 		saver:        NewTokenmanagerSaver(cfg),
@@ -33,7 +34,7 @@ func RunItemsIndexer(ctx context.Context, cfg config.Config) {
 
 type itemsIndexer struct {
 	log          *logan.Entry
-	tokenmanager tokenmanager.QueryClient
+	tokenmanager core.Tokenmanager
 	storage      data.Storage
 	chains       data.ChainsQ
 	saver        *TokenmanagerSaver
@@ -77,27 +78,21 @@ func (p *itemsIndexer) handle(ctx context.Context, raw msgs.Message) error {
 }
 
 func (p *itemsIndexer) handleItemCreated(ctx context.Context, msg msgs.ItemCreatedMessage) error {
-	p.log.
-		WithField("index", msg.Index).
-		Debug("handling item created")
+	p.log.WithField("index", msg.Index).Debug("handling item created")
 
-	itemResp, err := p.tokenmanager.Item(ctx, &tokenmanager.QueryGetItemRequest{Index: msg.Index})
+	item, err := p.tokenmanager.GetItem(ctx, msg.Index)
 	if err != nil {
-		return errors.Wrap(err, "failed to get item from core", logan.F{
-			"index": msg.Index,
-		})
+		return errors.Wrap(err, "failed to get item from core")
 	}
 
-	_, err = p.saver.SaveItem(ctx, itemResp.Item)
+	_, err = p.saver.SaveItem(ctx, *item)
 	return errors.Wrap(err, "failed to save item", logan.F{
 		"index": msg.Index,
 	})
 }
 
 func (p *itemsIndexer) handleItemRemoved(ctx context.Context, msg msgs.ItemRemovedMessage) error {
-	p.log.
-		WithField("index", msg.Index).
-		Debug("handling item removed")
+	p.log.WithField("index", msg.Index).Debug("handling item removed")
 
 	return p.storage.Transaction(func() error {
 		item, err := p.storage.ItemQ().ItemByIndexCtx(ctx, []byte(msg.Index), true)
@@ -114,7 +109,6 @@ func (p *itemsIndexer) handleItemRemoved(ctx context.Context, msg msgs.ItemRemov
 			})
 		}
 
-		// TODO add state and set status `removed` instead of deleting (to avoid problems with restarting from genesis)
 		err = p.storage.ItemQ().DeleteCtx(ctx, item)
 		if err != nil {
 			return errors.Wrap(err, "failed to delete item", logan.F{
@@ -153,24 +147,17 @@ func (p *itemsIndexer) handleOnChainItemCreated(ctx context.Context, msg msgs.It
 		})
 	}
 
-	onChainItemResp, err := p.tokenmanager.OnChainItemByItemForChain(ctx,
-		&tokenmanager.QueryGetOnChainItemByItemForChainRequest{
-			ItemIndex: string(item.Index),
-			Chain:     network.Name,
-		})
+	onChainItem, err := p.tokenmanager.GetOnChainItemByItemForChain(ctx, string(item.Index), network.Name)
 	if err != nil {
-		// FIXME(hp): handle not found and precondition failed ?
-		return errors.Wrap(err, "failed to get on-chain item from core", logan.F{
-			"index": msg.ItemIndex,
-		})
+		return errors.Wrap(err, "failed to get on-chain item from core")
 	}
 
 	now := time.Now().UTC()
 	err = p.storage.ItemChainMappingQ().InsertCtx(ctx, &data.ItemChainMapping{
 		Item:      item.ID,
 		Network:   network.ID,
-		Address:   []byte(onChainItemResp.Item.Index.Address),
-		TokenID:   []byte(onChainItemResp.Item.Index.TokenID),
+		Address:   []byte(onChainItem.Index.Address),
+		TokenID:   []byte(onChainItem.Index.TokenID),
 		CreatedAt: now,
 		UpdatedAt: now,
 	})

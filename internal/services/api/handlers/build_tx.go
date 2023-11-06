@@ -4,15 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"strings"
-
 	"github.com/rarimo/horizon-svc/pkg/txbuild"
-
-	tokenmanager "github.com/rarimo/rarimo-core/x/tokenmanager/types"
-	"golang.org/x/exp/slices"
+	"net/http"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	tokenmanager "github.com/rarimo/rarimo-core/x/tokenmanager/types"
 
 	"gitlab.com/distributed_lab/logan/v3"
 
@@ -69,20 +65,8 @@ func validateBuildTx(r *http.Request, req resources.BuildTxRequest) (*resources.
 	supported := make([]interface{}, len(chains))
 
 	for i, chain := range chains {
-		switch {
-		case strings.ToLower(chain.Name) == "rarimo":
-			continue // rarimo is not supported yet TODO make it less crutchy
-		case !slices.Contains(
-			[]tokenmanager.NetworkType{
-				tokenmanager.NetworkType_EVM,
-				tokenmanager.NetworkType_Solana,
-				tokenmanager.NetworkType_Near,
-			}, chain.Type):
-
-			continue
-		default:
-			supported[i] = chain.Name
-		}
+		// TODO: filter out `tokenmanager.NetworkType_Other` when Rarimo network type will be added
+		supported[i] = chain.Name
 	}
 
 	errs := validation.Errors{

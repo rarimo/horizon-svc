@@ -1,6 +1,5 @@
 get:
   summary: Withdrawal by deposit transaction hash
-  # security: TODO
   description: >
     Returns information about the particular withdrawal.
   operationId: withdrawalByHash

@@ -52,8 +52,8 @@ get:
         type: string
         example: "0xd30a6d9589a4ad1845f4cfb6cdafa47e2d444fcc568cef04525f1d700f4e53aa"
     - in: query
-      name: 'filter[token_index]'
-      description: Filter transfers by specific token index stored in rarimo-core
+      name: 'filter[item_index]'
+      description: Filter transfers by specific item index stored in rarimo-core
       required: false
       schema:
         type: string

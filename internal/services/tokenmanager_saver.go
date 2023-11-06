@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"github.com/rarimo/horizon-svc/internal/config"
+	"github.com/rarimo/horizon-svc/internal/core"
 	"github.com/rarimo/horizon-svc/internal/data"
 	"github.com/rarimo/horizon-svc/internal/data/redis"
 	tokenmanager "github.com/rarimo/rarimo-core/x/tokenmanager/types"
@@ -24,7 +25,7 @@ type TokenmanagerSaver struct {
 	chains       data.ChainsQ
 	kv           data.KeyValueQ
 	genesis      config.GenesisConfig
-	tokenmanager tokenmanager.QueryClient
+	tokenmanager core.Tokenmanager
 }
 
 func NewTokenmanagerSaver(cfg config.Config) *TokenmanagerSaver {
@@ -34,7 +35,7 @@ func NewTokenmanagerSaver(cfg config.Config) *TokenmanagerSaver {
 		cfg.ChainsQ(),
 		redis.NewKeyValueProvider(cfg),
 		cfg.Genesis(),
-		tokenmanager.NewQueryClient(cfg.Cosmos()),
+		cfg.Core().Tokenmanager(),
 	}
 }
 
@@ -267,14 +268,12 @@ func (s *TokenmanagerSaver) SaveItem(ctx context.Context, coreItem tokenmanager.
 	}
 
 	if collection == nil {
-		collectionResp, err := s.tokenmanager.Collection(ctx, &tokenmanager.QueryGetCollectionRequest{Index: coreItem.Collection})
+		coreCollection, err := s.tokenmanager.GetCollection(ctx, coreItem.Collection)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to get collection from core", logan.F{
-				"index": coreItem.Collection,
-			})
+			return nil, errors.Wrap(err, "failed to get collection")
 		}
 
-		collection, err = s.SaveCollection(ctx, collectionResp.Collection)
+		collection, err = s.SaveCollection(ctx, *coreCollection)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to save collection", logan.F{
 				"index": coreItem.Collection,

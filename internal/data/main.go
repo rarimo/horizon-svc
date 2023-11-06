@@ -2,8 +2,8 @@ package data
 
 import "context"
 
-//go:generate xo schema "postgres://postgres:postgres@localhost:5432/rarimo_horizon?sslmode=disable" -o ./ --single=schema.xo.go --src templates
-//go:generate xo schema "postgres://postgres:postgres@localhost:5432/rarimo_horizon?sslmode=disable" -o pg --single=schema.xo.go --src=pg/templates --go-context=both
+//go:generate xo schema "postgres://horizon:horizon@localhost:15432/horizon?sslmode=disable" -o ./ --single=schema.xo.go --src templates
+//go:generate xo schema "postgres://horizon:horizon@localhost:15432/horizon?sslmode=disable" -o pg --single=schema.xo.go --src=pg/templates --go-context=both
 //go:generate goimports -w ./
 
 type Storage interface {

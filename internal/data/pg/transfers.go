@@ -23,7 +23,7 @@ func (q TransferQ) UpsertBatchCtx(ctx context.Context, transfers ...data.Transfe
 			"rarimo_tx", "rarimo_tx_timestamp", "origin",
 			"tx", "event_id", "from_chain",
 			"to_chain", "receiver", "amount",
-			"bundle_data", "bundle_salt", "token_index") // TODO make it item_index
+			"bundle_data", "bundle_salt", "item_index")
 
 	for _, transfer := range transfers {
 		stmt = stmt.Values(
@@ -32,14 +32,14 @@ func (q TransferQ) UpsertBatchCtx(ctx context.Context, transfers ...data.Transfe
 			transfer.RarimoTx, transfer.RarimoTxTimestamp, transfer.Origin,
 			transfer.Tx, transfer.EventID, transfer.FromChain,
 			transfer.ToChain, transfer.Receiver, transfer.Amount,
-			transfer.BundleData, transfer.BundleSalt, transfer.TokenIndex)
+			transfer.BundleData, transfer.BundleSalt, transfer.ItemIndex)
 	}
 
 	// mitigating conflict on index problems in case transfer gets re-submitted
 	stmt = stmt.Suffix(
 		`ON CONFLICT(index) DO ` +
 			`UPDATE SET ` +
-			`status = EXCLUDED.status, updated_at = EXCLUDED.updated_at, creator = EXCLUDED.creator, rarimo_tx = EXCLUDED.rarimo_tx, rarimo_tx_timestamp = EXCLUDED.rarimo_tx_timestamp, origin = EXCLUDED.origin, tx = EXCLUDED.tx, event_id = EXCLUDED.event_id, from_chain = EXCLUDED.from_chain, to_chain = EXCLUDED.to_chain, receiver = EXCLUDED.receiver, amount = EXCLUDED.amount, bundle_data = EXCLUDED.bundle_data, bundle_salt = EXCLUDED.bundle_salt, token_index = EXCLUDED.token_index `)
+			`status = EXCLUDED.status, updated_at = EXCLUDED.updated_at, creator = EXCLUDED.creator, rarimo_tx = EXCLUDED.rarimo_tx, rarimo_tx_timestamp = EXCLUDED.rarimo_tx_timestamp, origin = EXCLUDED.origin, tx = EXCLUDED.tx, event_id = EXCLUDED.event_id, from_chain = EXCLUDED.from_chain, to_chain = EXCLUDED.to_chain, receiver = EXCLUDED.receiver, amount = EXCLUDED.amount, bundle_data = EXCLUDED.bundle_data, bundle_salt = EXCLUDED.bundle_salt, item_index = EXCLUDED.item_index `)
 
 	return q.db.ExecContext(ctx, stmt)
 }
@@ -108,8 +108,8 @@ func applyTransfersSelector(stmt squirrel.SelectBuilder, selector data.TransferS
 		stmt = stmt.Where(squirrel.Gt{"rarimo_tx_timestamp": selector.After})
 	}
 
-	if selector.TokenIndex != nil {
-		stmt = stmt.Where(squirrel.Eq{"token_index": selector.TokenIndex})
+	if selector.ItemIndex != nil {
+		stmt = stmt.Where(squirrel.Eq{"item_index": selector.ItemIndex})
 	}
 
 	stmt = applyTransfersPagination(stmt, selector.Sort, selector.PageCursor, selector.PageSize)

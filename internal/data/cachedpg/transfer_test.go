@@ -40,7 +40,7 @@ func TestEncodeDecodeTransfer(t *testing.T) {
 		},
 		BundleData: nil,
 		BundleSalt: nil,
-		TokenIndex: "foobar",
+		ItemIndex:  "foobar",
 	}
 
 	encoded, err := msgpack.Marshal(transfer)

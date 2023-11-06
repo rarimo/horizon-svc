@@ -13,7 +13,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	"github.com/rarimo/evm-bridge-contracts/gobind/contracts/bridge"
+	"github.com/rarimo/evm-bridge-contracts/bindings/contracts/bridge/bridge"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ethereum/go-ethereum/ethclient"

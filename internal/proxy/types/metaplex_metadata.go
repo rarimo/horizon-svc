@@ -5,28 +5,7 @@ import (
 	"github.com/olegfomenko/solana-go"
 )
 
-type Key borsh.Enum
-
-const (
-	KeyUninitialized Key = iota
-	KeyEditionV1
-	KeyMasterEditionV1
-	KeyReservationListV1
-	KeyMetadataV1
-	KeyReservationListV2
-	KeyMasterEditionV2
-	KeyEditionMarker
-	KeyUseAuthorityRecord
-	KeyCollectionAuthorityRecord
-)
-
 type UseMethod borsh.Enum
-
-const (
-	Burn UseMethod = iota
-	Multiple
-	Single
-)
 
 type Uses struct {
 	UseMethod UseMethod
@@ -35,13 +14,6 @@ type Uses struct {
 }
 
 type TokenStandard borsh.Enum
-
-const (
-	NonFungible TokenStandard = iota
-	FungibleAsset
-	Fungible
-	NonFungibleEdition
-)
 
 type MetaplexMetadata struct {
 	Key                 borsh.Enum

@@ -898,19 +898,19 @@ func (s Storage) TransferQ() data.TransferQ {
 	return NewTransferQ(s.DB())
 }
 
-var colsTransfer = `id, index, status, created_at, updated_at, creator, rarimo_tx, rarimo_tx_timestamp, origin, tx, event_id, from_chain, to_chain, receiver, amount, bundle_data, bundle_salt, token_index`
+var colsTransfer = `id, index, status, created_at, updated_at, creator, rarimo_tx, rarimo_tx_timestamp, origin, tx, event_id, from_chain, to_chain, receiver, amount, bundle_data, bundle_salt, item_index`
 
 // InsertCtx inserts a Transfer to the database.
 func (q TransferQ) InsertCtx(ctx context.Context, t *data.Transfer) error {
 	// insert (primary key generated and returned by database)
 	sqlstr := `INSERT INTO public.transfers (` +
-		`index, status, created_at, updated_at, creator, rarimo_tx, rarimo_tx_timestamp, origin, tx, event_id, from_chain, to_chain, receiver, amount, bundle_data, bundle_salt, token_index` +
+		`index, status, created_at, updated_at, creator, rarimo_tx, rarimo_tx_timestamp, origin, tx, event_id, from_chain, to_chain, receiver, amount, bundle_data, bundle_salt, item_index` +
 		`) VALUES (` +
 		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17` +
 		`) RETURNING id`
 		// run
 
-	err := q.db.GetRawContext(ctx, &t.ID, sqlstr, t.Index, t.Status, t.CreatedAt, t.UpdatedAt, t.Creator, t.RarimoTx, t.RarimoTxTimestamp, t.Origin, t.Tx, t.EventID, t.FromChain, t.ToChain, t.Receiver, t.Amount, t.BundleData, t.BundleSalt, t.TokenIndex)
+	err := q.db.GetRawContext(ctx, &t.ID, sqlstr, t.Index, t.Status, t.CreatedAt, t.UpdatedAt, t.Creator, t.RarimoTx, t.RarimoTxTimestamp, t.Origin, t.Tx, t.EventID, t.FromChain, t.ToChain, t.Receiver, t.Amount, t.BundleData, t.BundleSalt, t.ItemIndex)
 	if err != nil {
 		return errors.Wrap(err, "failed to execute insert")
 	}
@@ -927,10 +927,10 @@ func (q TransferQ) Insert(t *data.Transfer) error {
 func (q TransferQ) UpdateCtx(ctx context.Context, t *data.Transfer) error {
 	// update with composite primary key
 	sqlstr := `UPDATE public.transfers SET ` +
-		`index = $1, status = $2, updated_at = $3, creator = $4, rarimo_tx = $5, rarimo_tx_timestamp = $6, origin = $7, tx = $8, event_id = $9, from_chain = $10, to_chain = $11, receiver = $12, amount = $13, bundle_data = $14, bundle_salt = $15, token_index = $16 ` +
+		`index = $1, status = $2, updated_at = $3, creator = $4, rarimo_tx = $5, rarimo_tx_timestamp = $6, origin = $7, tx = $8, event_id = $9, from_chain = $10, to_chain = $11, receiver = $12, amount = $13, bundle_data = $14, bundle_salt = $15, item_index = $16 ` +
 		`WHERE id = $17`
 	// run
-	err := q.db.ExecRawContext(ctx, sqlstr, t.Index, t.Status, t.UpdatedAt, t.Creator, t.RarimoTx, t.RarimoTxTimestamp, t.Origin, t.Tx, t.EventID, t.FromChain, t.ToChain, t.Receiver, t.Amount, t.BundleData, t.BundleSalt, t.TokenIndex, t.ID)
+	err := q.db.ExecRawContext(ctx, sqlstr, t.Index, t.Status, t.UpdatedAt, t.Creator, t.RarimoTx, t.RarimoTxTimestamp, t.Origin, t.Tx, t.EventID, t.FromChain, t.ToChain, t.Receiver, t.Amount, t.BundleData, t.BundleSalt, t.ItemIndex, t.ID)
 	return errors.Wrap(err, "failed to execute update")
 }
 
@@ -943,15 +943,15 @@ func (q TransferQ) Update(t *data.Transfer) error {
 func (q TransferQ) UpsertCtx(ctx context.Context, t *data.Transfer) error {
 	// upsert
 	sqlstr := `INSERT INTO public.transfers (` +
-		`id, index, status, created_at, updated_at, creator, rarimo_tx, rarimo_tx_timestamp, origin, tx, event_id, from_chain, to_chain, receiver, amount, bundle_data, bundle_salt, token_index` +
+		`id, index, status, created_at, updated_at, creator, rarimo_tx, rarimo_tx_timestamp, origin, tx, event_id, from_chain, to_chain, receiver, amount, bundle_data, bundle_salt, item_index` +
 		`) VALUES (` +
 		`$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18` +
 		`)` +
 		` ON CONFLICT (id) DO ` +
 		`UPDATE SET ` +
-		`index = EXCLUDED.index, status = EXCLUDED.status, updated_at = EXCLUDED.updated_at, creator = EXCLUDED.creator, rarimo_tx = EXCLUDED.rarimo_tx, rarimo_tx_timestamp = EXCLUDED.rarimo_tx_timestamp, origin = EXCLUDED.origin, tx = EXCLUDED.tx, event_id = EXCLUDED.event_id, from_chain = EXCLUDED.from_chain, to_chain = EXCLUDED.to_chain, receiver = EXCLUDED.receiver, amount = EXCLUDED.amount, bundle_data = EXCLUDED.bundle_data, bundle_salt = EXCLUDED.bundle_salt, token_index = EXCLUDED.token_index `
+		`index = EXCLUDED.index, status = EXCLUDED.status, updated_at = EXCLUDED.updated_at, creator = EXCLUDED.creator, rarimo_tx = EXCLUDED.rarimo_tx, rarimo_tx_timestamp = EXCLUDED.rarimo_tx_timestamp, origin = EXCLUDED.origin, tx = EXCLUDED.tx, event_id = EXCLUDED.event_id, from_chain = EXCLUDED.from_chain, to_chain = EXCLUDED.to_chain, receiver = EXCLUDED.receiver, amount = EXCLUDED.amount, bundle_data = EXCLUDED.bundle_data, bundle_salt = EXCLUDED.bundle_salt, item_index = EXCLUDED.item_index `
 	// run
-	if err := q.db.ExecRawContext(ctx, sqlstr, t.ID, t.Index, t.Status, t.CreatedAt, t.UpdatedAt, t.Creator, t.RarimoTx, t.RarimoTxTimestamp, t.Origin, t.Tx, t.EventID, t.FromChain, t.ToChain, t.Receiver, t.Amount, t.BundleData, t.BundleSalt, t.TokenIndex); err != nil {
+	if err := q.db.ExecRawContext(ctx, sqlstr, t.ID, t.Index, t.Status, t.CreatedAt, t.UpdatedAt, t.Creator, t.RarimoTx, t.RarimoTxTimestamp, t.Origin, t.Tx, t.EventID, t.FromChain, t.ToChain, t.Receiver, t.Amount, t.BundleData, t.BundleSalt, t.ItemIndex); err != nil {
 		return errors.Wrap(err, "failed to execute upsert stmt")
 	}
 	return nil
@@ -1829,7 +1829,7 @@ func (q TransactionQ) TransactionByHash(hash []byte, isForUpdate bool) (*data.Tr
 func (q TransferQ) TransferByIndexCtx(ctx context.Context, index []byte, isForUpdate bool) (*data.Transfer, error) {
 	// query
 	sqlstr := `SELECT ` +
-		`id, index, status, created_at, updated_at, creator, rarimo_tx, rarimo_tx_timestamp, origin, tx, event_id, from_chain, to_chain, receiver, amount, bundle_data, bundle_salt, token_index ` +
+		`id, index, status, created_at, updated_at, creator, rarimo_tx, rarimo_tx_timestamp, origin, tx, event_id, from_chain, to_chain, receiver, amount, bundle_data, bundle_salt, item_index ` +
 		`FROM public.transfers ` +
 		`WHERE index = $1`
 	// run
@@ -1862,7 +1862,7 @@ func (q TransferQ) TransferByIndex(index []byte, isForUpdate bool) (*data.Transf
 func (q TransferQ) TransferByIDCtx(ctx context.Context, id int64, isForUpdate bool) (*data.Transfer, error) {
 	// query
 	sqlstr := `SELECT ` +
-		`id, index, status, created_at, updated_at, creator, rarimo_tx, rarimo_tx_timestamp, origin, tx, event_id, from_chain, to_chain, receiver, amount, bundle_data, bundle_salt, token_index ` +
+		`id, index, status, created_at, updated_at, creator, rarimo_tx, rarimo_tx_timestamp, origin, tx, event_id, from_chain, to_chain, receiver, amount, bundle_data, bundle_salt, item_index ` +
 		`FROM public.transfers ` +
 		`WHERE id = $1`
 	// run

@@ -2,7 +2,6 @@ package evm
 
 import (
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/rarimo/horizon-svc/internal/chain_gateway"
 	"github.com/rarimo/horizon-svc/internal/data"
 	"github.com/rarimo/horizon-svc/internal/metadata_fetcher"
 	"github.com/rarimo/horizon-svc/internal/proxy/types"
@@ -13,10 +12,9 @@ import (
 type evmProxy struct {
 	cli     *ethclient.Client
 	fetcher metadata_fetcher.Client
-	gateway chain_gateway.ChainGateway
 }
 
-func New(chain data.Chain, fetcher metadata_fetcher.Client, gateway chain_gateway.ChainGateway) types.Proxy {
+func New(chain data.Chain, fetcher metadata_fetcher.Client) types.Proxy {
 	cli, err := ethclient.Dial(chain.Rpc)
 	if err != nil {
 		panic(errors.Wrap(err, "failed to connect to ethereum node", logan.F{
@@ -27,6 +25,5 @@ func New(chain data.Chain, fetcher metadata_fetcher.Client, gateway chain_gatewa
 	return &evmProxy{
 		cli:     cli,
 		fetcher: fetcher,
-		gateway: gateway,
 	}
 }

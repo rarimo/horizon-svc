@@ -32,13 +32,13 @@ allOf:
         type: object
         required: [ creator ]
         properties:
-          token:
+          item:
             type: object
             required: [ data ]
-            description: Token used in the transfer
+            description: Item used in the transfer
             properties:
               data:
-                $ref: '#/components/schemas/TokenKey'
+                $ref: '#/components/schemas/ItemKey'
           tx:
             type: object
             required: [ data ]
