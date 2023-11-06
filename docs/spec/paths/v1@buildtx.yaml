@@ -18,7 +18,7 @@ post:
               type: object
               $ref: '#/components/schemas/BuildTx'
   responses:
-    '200':
+    200:
       description: Success
       content:
         application/json:
@@ -29,8 +29,10 @@ post:
             properties:
               data:
                 $ref: '#/components/schemas/UnsubmittedTx'
-    '400':
-      description: Bad request
-    '500':
-      description: Internal server error
+    400:
+      $ref: '#/components/responses/invalidParameter'
+    429:
+      $ref: '#/components/responses/tooManyRequests'
+    500:
+      $ref: '#/components/responses/internalError'
 

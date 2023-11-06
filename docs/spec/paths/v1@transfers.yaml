@@ -1,6 +1,5 @@
 get:
   summary: Transfer list
-  # security: TODO
   description: >
     Returns list of transfer events registered in core.
   operationId: transferList
@@ -90,7 +89,7 @@ get:
           description: Date in Unix timestap format
           example: "1671516805"
   responses:
-    '200':
+    200:
       description: OK
       content:
         application/vnd.api+json:
@@ -107,7 +106,9 @@ get:
                 type: array
                 items:
                   type: object
-    '400':
-      $ref: '#/components/responses/invalidParameter.yaml'
-    '500':
-      $ref: '#/components/responses/internalError.yaml'
+    400:
+      $ref: '#/components/responses/invalidParameter'
+    429:
+      $ref: '#/components/responses/tooManyRequests'
+    500:
+      $ref: '#/components/responses/internalError'

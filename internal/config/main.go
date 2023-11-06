@@ -57,6 +57,8 @@ type Config interface {
 
 	BridgeProducer() *BridgeProducerConfig
 	WithdrawalsIndexer() *WithdrawalsIndexerConfig
+
+	RateLimiter() *RateLimiterConfig
 }
 
 type config struct {
@@ -89,6 +91,7 @@ type config struct {
 	genesis              comfig.Once
 	bridgeProducer       comfig.Once
 	withdrawalsIndexer   comfig.Once
+	rateLimiter          comfig.Once
 
 	getter kv.Getter
 }

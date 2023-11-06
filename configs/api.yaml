@@ -5,6 +5,12 @@ log:
 listener:
   addr: :8000
 
+rate_limits:
+  period: 1s
+  limit: 1
+  prefix: "horizon-api-rate-limits"
+  disabled: false
+
 cop:
   disabled: true
   endpoint: "http://..."
