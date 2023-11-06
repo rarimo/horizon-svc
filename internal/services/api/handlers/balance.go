@@ -113,14 +113,14 @@ func Balance(w http.ResponseWriter, r *http.Request) {
 }
 
 func newBalanceResponse(request *balanceRequest, amount *amount.Amount) resources.BalanceResponse {
-	tokenID := request.TokenID
-	if tokenID == "" {
-		tokenID = "0"
+	id := fmt.Sprintf("%s:%s:%s", request.Index, request.Chain, request.AccountAddress)
+	if request.TokenID != "" {
+		id += ":" + request.TokenID
 	}
 	return resources.BalanceResponse{
 		Data: resources.Balance{
 			Key: resources.Key{
-				ID:   fmt.Sprintf("%s:%s:%s:%s", request.Index, request.Chain, request.AccountAddress, tokenID),
+				ID:   id,
 				Type: resources.BALANCES,
 			},
 			Attributes: resources.BalanceAttributes{
