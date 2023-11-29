@@ -2,7 +2,7 @@
 
 ## Description
 
-Horizon is the module that allows users to track user-emitted and system evens, fetch info about the current state of the system and build transactions to send to target networks
+Horizon is the module that allows users to track user-emitted and system events, fetch info about the current state of the system and build transactions to send to target networks
 
 ## Install
 
