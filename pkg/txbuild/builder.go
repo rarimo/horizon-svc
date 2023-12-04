@@ -90,7 +90,7 @@ func NewMultiBuilder(cfg config.Config) *MultiBuilder {
 				panic(errors.Wrap(err, "failed to dial near client"))
 			}
 			builders[chain.Name] = neartx.NewBuilder(cli, string(hexutil.MustDecode(chainConf.contract)))
-		case tokenmanager.NetworkType_Other: // FIXME: change to the rarimo chain type when it will be implemented
+		case tokenmanager.NetworkType_Rarimo:
 		default:
 			panic(fmt.Errorf("unsupported network type %s", chain.Type))
 		}

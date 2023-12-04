@@ -62,11 +62,13 @@ func BuildTx(w http.ResponseWriter, r *http.Request) {
 func validateBuildTx(r *http.Request, req resources.BuildTxRequest) (*resources.BuildTx, interface{}, error) {
 	chains := ChainsQ(r).List()
 
-	supported := make([]interface{}, len(chains))
+	supported := make([]interface{}, 0)
 
-	for i, chain := range chains {
-		// TODO: filter out `tokenmanager.NetworkType_Other` when Rarimo network type will be added
-		supported[i] = chain.Name
+	for _, chain := range chains {
+		if chain.Type == tokenmanager.NetworkType_Rarimo || chain.Type == tokenmanager.NetworkType_Other {
+			continue
+		}
+		supported = append(supported, chain.Name)
 	}
 
 	errs := validation.Errors{
