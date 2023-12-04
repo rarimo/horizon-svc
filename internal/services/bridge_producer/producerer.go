@@ -21,7 +21,7 @@ func newProducerer(cfg config.Config, publisher services.QPublisher) types.Produ
 
 	kv := redis.NewKeyValueProvider(cfg)
 
-	networks, err := cfg.Core().TokenManager().GetParams(context.Background())
+	networks, err := cfg.Core().Tokenmanager().GetParams(context.Background())
 	if err != nil {
 		panic(errors.Wrap(err, "failed to get networks"))
 	}
@@ -53,7 +53,7 @@ func newProducerer(cfg config.Config, publisher services.QPublisher) types.Produ
 			repo.producers[chain.Name] = solana.New(conf, log, kv, publisher, chain, contract, cursorKey)
 		case tokenmanager.NetworkType_Near:
 			repo.producers[chain.Name] = near.New(conf, log, kv, publisher, cfg.Near(), contract, cursorKey)
-		case tokenmanager.NetworkType_Other: // FIXME: change to the rarimo chain type when it will be implemented
+		case tokenmanager.NetworkType_Rarimo:
 			repo.producers[chain.Name] = rarimo.New(conf, log, kv, publisher, cfg.Tendermint(), cursorKey)
 		default:
 			panic("Unsupported chain type")

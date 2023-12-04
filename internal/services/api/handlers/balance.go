@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"math/rand"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -18,7 +18,7 @@ import (
 
 type balanceRequest struct {
 	Chain          string `url:"chain"`
-	TokenIndex     string `url:"token_index"`
+	Index          string `url:"index"`
 	AccountAddress string `url:"account_address"`
 	TokenID        string `url:"token_id,omitempty"`
 }
@@ -27,13 +27,13 @@ func newBalanceRequest(r *http.Request) (*balanceRequest, error) {
 	var request balanceRequest
 
 	request.Chain = chi.URLParam(r, "chain")
-	request.TokenIndex = chi.URLParam(r, "token_index")
+	request.Index = chi.URLParam(r, "index")
 	request.AccountAddress = chi.URLParam(r, "account_address")
 	request.TokenID = r.URL.Query().Get("token_id")
 
 	return &request, validation.Errors{
 		"chain":           validation.Validate(request.Chain, validation.Required),
-		"token_index":     validation.Validate(request.TokenIndex, validation.Required),
+		"index":           validation.Validate(request.Index, validation.Required),
 		"account_address": validation.Validate(request.AccountAddress, validation.Required),
 	}.Filter()
 }
@@ -46,7 +46,7 @@ func Balance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	item, err := Core(r).TokenManager().GetItem(r.Context(), req.TokenIndex)
+	item, err := Core(r).Tokenmanager().GetItem(r.Context(), req.Index)
 	if err != nil {
 		Log(r).WithError(err).Error("failed to get item")
 		ape.RenderErr(w, problems.InternalError())
@@ -55,7 +55,7 @@ func Balance(w http.ResponseWriter, r *http.Request) {
 
 	if item == nil {
 		ape.RenderErr(w, problems.BadRequest(validation.Errors{
-			"token_index": errors.New("no item with such index"),
+			"index": errors.New("no item with such index"),
 		})...)
 		return
 	}
@@ -68,7 +68,7 @@ func Balance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collectionData, err := Core(r).TokenManager().CollectionData(r.Context(), onChainItem.Chain, onChainItem.Address)
+	collectionData, err := Core(r).Tokenmanager().GetCollectionData(r.Context(), onChainItem.Chain, onChainItem.Address)
 	if err != nil {
 		Log(r).WithError(err).Error("failed to get collection")
 		ape.RenderErr(w, problems.InternalError())
@@ -109,13 +109,20 @@ func Balance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ape.Render(w, newBalanceResponse(balance))
+	ape.Render(w, newBalanceResponse(req, balance))
 }
 
-func newBalanceResponse(amount *amount.Amount) resources.BalanceResponse {
+func newBalanceResponse(request *balanceRequest, amount *amount.Amount) resources.BalanceResponse {
+	id := fmt.Sprintf("%s:%s:%s", request.Index, request.Chain, request.AccountAddress)
+	if request.TokenID != "" {
+		id += ":" + request.TokenID
+	}
 	return resources.BalanceResponse{
 		Data: resources.Balance{
-			Key: resources.NewKeyInt64(rand.Int63(), resources.BALANCES), // TODO - remove random key after adding aggregation
+			Key: resources.Key{
+				ID:   id,
+				Type: resources.BALANCES,
+			},
 			Attributes: resources.BalanceAttributes{
 				Amount: amount.String(),
 			},

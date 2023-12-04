@@ -57,12 +57,12 @@ allOf:
         type: object
         required: [creator]
         properties:
-          token:
+          item:
             type: object
             required: [data]
             properties:
               data:
-                $ref: '#/components/schemas/TokenKey'
+                $ref: '#/components/schemas/ItemKey'
           tx:
             type: object
             required: [data]

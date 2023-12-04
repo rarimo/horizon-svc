@@ -51,11 +51,7 @@ func TransferList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO should it be authorized ?
-	//  how to authorize if so?
-	// TODO figure out how to save data models to cache and use CachedStorage
-	transfers, err := Storage(r).TransferQ().SelectCtx(r.Context(), createSelector(*request))
-
+	transfers, err := CachedStorage(r).TransferQ().SelectCtx(r.Context(), createSelector(*request))
 	if err != nil {
 		panic(errors.Wrap(err, "failed to select transfers"))
 	}
@@ -96,7 +92,7 @@ func createSelector(request transferListRequest) data.TransferSelector {
 		DestinationChain: request.ToChain,
 		Receiver:         request.Receiver,
 		Creator:          request.Creator,
-		TokenIndex:       request.ItemIndex,
+		ItemIndex:        request.ItemIndex,
 		PageCursor:       request.PageCursor,
 		PageSize:         request.PageLimit,
 		Sort:             request.Sorts,

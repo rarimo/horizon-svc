@@ -11,7 +11,7 @@ import (
 	"github.com/rarimo/near-go/nearclient"
 
 	"github.com/pkg/errors"
-	gobind "github.com/rarimo/evm-bridge-contracts/gobind/contracts/bridge"
+	gobind "github.com/rarimo/evm-bridge-contracts/bindings/contracts/bridge/bridge"
 	"github.com/rarimo/horizon-svc/internal/config"
 	"github.com/rarimo/horizon-svc/internal/data"
 	"github.com/rarimo/horizon-svc/pkg/ethtx"
@@ -40,7 +40,7 @@ func NewMultiBuilder(cfg config.Config) *MultiBuilder {
 		panic(errors.Wrap(err, "failed to get bridge abi"))
 	}
 
-	networks, err := cfg.Core().TokenManager().GetParams(context.Background())
+	networks, err := cfg.Core().Tokenmanager().GetParams(context.Background())
 	if err != nil {
 		panic(errors.Wrap(err, "failed to get networks"))
 	}
@@ -90,7 +90,7 @@ func NewMultiBuilder(cfg config.Config) *MultiBuilder {
 				panic(errors.Wrap(err, "failed to dial near client"))
 			}
 			builders[chain.Name] = neartx.NewBuilder(cli, string(hexutil.MustDecode(chainConf.contract)))
-		case tokenmanager.NetworkType_Other: // FIXME: change to the rarimo chain type when it will be implemented
+		case tokenmanager.NetworkType_Rarimo:
 		default:
 			panic(fmt.Errorf("unsupported network type %s", chain.Type))
 		}

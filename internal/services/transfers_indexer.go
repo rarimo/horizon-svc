@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"database/sql"
+	"github.com/rarimo/horizon-svc/internal/core"
 	"math/big"
 	"strconv"
 	"time"
@@ -12,7 +13,6 @@ import (
 	"github.com/rarimo/horizon-svc/internal/data"
 	"github.com/rarimo/horizon-svc/pkg/msgs"
 	rarimocore "github.com/rarimo/rarimo-core/x/rarimocore/types"
-	tokenmanager "github.com/rarimo/rarimo-core/x/tokenmanager/types"
 	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/logan/v3/errors"
 )
@@ -20,8 +20,8 @@ import (
 func RunTransfersIndexer(ctx context.Context, cfg config.Config) {
 	tindexer := &transfersIndexer{
 		log:          cfg.Log().WithField("who", cfg.TransfersIndexer().RunnerName),
-		rarimocore:   rarimocore.NewQueryClient(cfg.Cosmos()),
-		tokenmanager: tokenmanager.NewQueryClient(cfg.Cosmos()),
+		rarimocore:   cfg.Core().Rarimocore(),
+		tokenmanager: cfg.Core().Tokenmanager(),
 		storage:      cfg.CachedStorage().Clone(),
 	}
 
@@ -34,8 +34,8 @@ func RunTransfersIndexer(ctx context.Context, cfg config.Config) {
 
 type transfersIndexer struct {
 	log          *logan.Entry
-	rarimocore   rarimocore.QueryClient
-	tokenmanager tokenmanager.QueryClient
+	rarimocore   core.Rarimocore
+	tokenmanager core.Tokenmanager
 
 	storage data.Storage
 }
@@ -53,32 +53,24 @@ func (p *transfersIndexer) Handle(ctx context.Context, msgs []msgs.Message) erro
 			"tx_hash":     tmsg.TransactionHash,
 		}).Debug("handling transfer")
 
-		resp, err := p.rarimocore.Operation(ctx, &rarimocore.QueryGetOperationRequest{
-			Index: tmsg.TransferID,
-		})
+		operation, err := p.rarimocore.GetOperation(ctx, tmsg.TransferID)
 		if err != nil {
-			return errors.Wrap(err, "failed to get operation", logan.F{
-				"index": tmsg.TransferID,
-			})
+			return errors.Wrap(err, "failed to get operation")
 		}
 
 		p.log.WithFields(logan.F{
-			"index": resp.Operation.Index,
-			"type":  resp.Operation.OperationType.String(),
+			"index": operation.Index,
+			"type":  operation.OperationType.String(),
 		}).Debug("got operation")
 
 		var operationDetails rarimocore.Transfer
-		if err := proto.Unmarshal(resp.Operation.Details.Value, &operationDetails); err != nil {
+		if err := proto.Unmarshal(operation.Details.Value, &operationDetails); err != nil {
 			return errors.Wrap(err, "failed to unmarshal operation details", logan.F{
-				"index": resp.Operation.Index,
+				"index": operation.Index,
 			})
 		}
 
-		onChainItemResp, err := p.tokenmanager.OnChainItem(ctx, &tokenmanager.QueryGetOnChainItemRequest{
-			Chain:   operationDetails.From.Chain,
-			Address: operationDetails.From.Address,
-			TokenID: operationDetails.From.TokenID,
-		})
+		onChainItem, err := p.tokenmanager.GetOnChainItem(ctx, operationDetails.From.Chain, operationDetails.From.Address, operationDetails.From.TokenID)
 
 		if err != nil {
 			return errors.Wrap(err, "failed to get item", logan.F{
@@ -88,17 +80,17 @@ func (p *transfersIndexer) Handle(ctx context.Context, msgs []msgs.Message) erro
 			})
 		}
 
-		transferData, err := p.makeTransfer(ctx, tmsg.TransactionHash, resp.Operation, operationDetails, onChainItemResp.Item.Item)
+		transferData, err := p.makeTransfer(ctx, tmsg.TransactionHash, *operation, operationDetails, onChainItem.Item)
 		if err != nil {
 			return errors.Wrap(err, "failed to make transfer", logan.F{
-				"index": resp.Operation.Index,
+				"index": operation.Index,
 			})
 		}
 
 		p.log.WithFields(logan.F{
 			"transfer": string(transferData.Index),
 			"status":   transferData.Status,
-			"item":     transferData.TokenIndex,
+			"item":     transferData.ItemIndex,
 		}).Debug("made transfer")
 
 		transfers[i] = *transferData
@@ -186,7 +178,7 @@ func (p *transfersIndexer) makeTransfer(ctx context.Context,
 		},
 		RarimoTx:   data.MustDBHash(txHash),
 		Origin:     operationDetails.Origin,
-		Tx:         []byte(operationDetails.Tx), // TODO what tx is this ? make consistent form (hex?/base64?)
+		Tx:         []byte(operationDetails.Tx),
 		EventID:    eventID,
 		FromChain:  operationDetails.From.Chain,
 		ToChain:    operationDetails.To.Chain,
@@ -194,6 +186,6 @@ func (p *transfersIndexer) makeTransfer(ctx context.Context,
 		Amount:     data.Int256{amount},
 		BundleData: []byte(operationDetails.BundleData),
 		BundleSalt: []byte(operationDetails.BundleSalt),
-		TokenIndex: itemIndex,
+		ItemIndex:  itemIndex,
 	}, nil
 }

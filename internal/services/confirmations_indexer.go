@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"github.com/rarimo/horizon-svc/internal/core"
 	"time"
 
 	"gitlab.com/distributed_lab/logan/v3/errors"
@@ -16,7 +17,7 @@ import (
 func RunConfirmationsIndexer(ctx context.Context, cfg config.Config) {
 	cindexer := &confirmationsIndexer{
 		log:        cfg.Log().WithField("who", cfg.ConfirmationsIndexer().RunnerName),
-		rarimocore: rarimocore.NewQueryClient(cfg.Cosmos()),
+		rarimocore: cfg.Core().Rarimocore(),
 		storage:    cfg.CachedStorage().Clone(),
 	}
 
@@ -29,7 +30,7 @@ func RunConfirmationsIndexer(ctx context.Context, cfg config.Config) {
 
 type confirmationsIndexer struct {
 	log        *logan.Entry
-	rarimocore rarimocore.QueryClient
+	rarimocore core.Rarimocore
 	storage    data.Storage
 }
 
@@ -40,16 +41,12 @@ func (p *confirmationsIndexer) Handle(ctx context.Context, msgs []msgs.Message) 
 	for _, msg := range msgs {
 		cmsg := msg.MustConfirmationOpMessage()
 
-		resp, err := p.rarimocore.Confirmation(ctx, &rarimocore.QueryGetConfirmationRequest{
-			Root: cmsg.ConfirmationID,
-		})
+		confirmation, err := p.rarimocore.GetConfirmation(ctx, cmsg.ConfirmationID)
 		if err != nil {
-			return errors.Wrap(err, "failed to get confirmation", logan.F{
-				"root": cmsg.ConfirmationID,
-			})
+			return errors.Wrap(err, "failed to get confirmation")
 		}
 
-		for _, transferIndex := range resp.Confirmation.Indexes {
+		for _, transferIndex := range confirmation.Indexes {
 			confirmedTransferIDs = append(confirmedTransferIDs, transferIndex)
 			confirmations = append(confirmations, data.Confirmation{
 				TransferIndex:     []byte(transferIndex),

@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/rarimo/evm-bridge-contracts/gobind/contracts/bridge"
+	"github.com/rarimo/evm-bridge-contracts/bindings/contracts/bridge/bridge"
 	"github.com/rarimo/horizon-svc/internal/data"
 	"github.com/rarimo/horizon-svc/resources"
 	"gitlab.com/distributed_lab/logan/v3"

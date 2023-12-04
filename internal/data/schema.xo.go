@@ -172,7 +172,7 @@ type Transfer struct {
 	Amount            Int256         `db:"amount" json:"amount" structs:"amount"`                                        // amount
 	BundleData        []byte         `db:"bundle_data" json:"bundle_data" structs:"bundle_data"`                         // bundle_data
 	BundleSalt        []byte         `db:"bundle_salt" json:"bundle_salt" structs:"bundle_salt"`                         // bundle_salt
-	TokenIndex        string         `db:"token_index" json:"token_index" structs:"token_index"`                         // token_index
+	ItemIndex         string         `db:"item_index" json:"item_index" structs:"item_index"`                            // item_index
 
 }
 

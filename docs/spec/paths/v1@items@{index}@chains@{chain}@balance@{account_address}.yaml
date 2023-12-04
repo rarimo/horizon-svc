@@ -1,7 +1,7 @@
 parameters:
-  - name: token_index
+  - name: index
     in: path
-    description: Chain index from rarimo-core tokensmanager item list
+    description: Item index from rarimo-core
     required: true
     schema:
       type: string
@@ -12,9 +12,9 @@ parameters:
     required: true
     schema:
       type: string
-  - name: token_id
+  - name: account_address
     in: path
-    description: Token id of NFT
+    description: Account address on chain in chain format
     required: true
     schema:
       type: string
@@ -22,8 +22,18 @@ parameters:
 get:
   tags:
     - Tokens
-  summary: Get NFT metadata
-  operationId: getNFTMetadata
+  summary: Get balance in specific chain
+  description: |
+      Returns amount of the particular tokens account owns on a particular chain.
+  operationId: getBalance
+  parameters:
+    - in: query
+      name: 'token_id'
+      required: false
+      schema:
+        type: string
+        description: Token id needed only to get balance for ERC1155 token
+        example: "1"
   responses:
     200:
       description: Success
@@ -33,7 +43,7 @@ get:
             type: object
             properties:
               data:
-                $ref: '#/components/schemas/NftMetadata'
+                $ref: '#/components/schemas/Balance'
     400:
       $ref: '#/components/responses/invalidParameter'
     401:

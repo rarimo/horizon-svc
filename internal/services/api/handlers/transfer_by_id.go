@@ -39,9 +39,7 @@ func TransferByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO check ID format
-	// TODO figure out how to save data models to cache and use CachedStorage
-	transfer, err := Storage(r).TransferQ().TransferByIndexCtx(r.Context(), []byte(request.ID), false)
+	transfer, err := CachedStorage(r).TransferQ().TransferByIndexCtx(r.Context(), []byte(request.ID), false)
 	if err != nil {
 		panic(errors.Wrap(err, "failed to select transfers"))
 	}
@@ -100,10 +98,10 @@ func mustToTransferResource(transfer data.Transfer) resources.Transfer {
 					Type: resources.ACCOUNT_EXTERNAL_IDS,
 				},
 			},
-			Token: &resources.Relation{
+			Item: &resources.Relation{
 				Data: &resources.Key{
-					ID:   transfer.TokenIndex,
-					Type: resources.TOKENS,
+					ID:   transfer.ItemIndex,
+					Type: resources.ITEMS,
 				},
 			},
 			Tx: &resources.Relation{

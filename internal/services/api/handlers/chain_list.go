@@ -59,7 +59,7 @@ func ChainList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params, err := Core(r).TokenManager().GetParams(r.Context())
+	params, err := Core(r).Tokenmanager().GetParams(r.Context())
 	if err != nil {
 		Log(r).WithError(err).Error("failed to get params from token manager")
 		ape.RenderErr(w, problems.InternalError())
@@ -89,10 +89,7 @@ func ChainList(w http.ResponseWriter, r *http.Request) {
 	for i, c := range chains {
 		net := networksMap[c.Name]
 
-		// TODO figure out how to save data models to cache and use CachedStorage
-		icms, err := Storage(r).
-			ItemChainMappingQ().
-			ItemChainMappingsByNetworkCtx(r.Context(), c.ID, false)
+		icms, err := CachedStorage(r).ItemChainMappingQ().ItemChainMappingsByNetworkCtx(r.Context(), c.ID, false)
 		if err != nil {
 			Log(r).WithError(err).Error("failed to select item chain mappings by network")
 			ape.RenderErr(w, problems.InternalError())
@@ -107,8 +104,7 @@ func ChainList(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if req.IncludeItems {
-				// TODO figure out how to save data models to cache and use CachedStorage
-				item, err := Storage(r).ItemQ().ItemByIDCtx(r.Context(), icm.Item, false)
+				item, err := CachedStorage(r).ItemQ().ItemByIDCtx(r.Context(), icm.Item, false)
 				if err != nil {
 					Log(r).WithError(err).WithField("id", icm.Item).Error("failed to get item")
 					ape.RenderErr(w, problems.InternalError())

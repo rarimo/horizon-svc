@@ -17,9 +17,8 @@ import (
 
 func RunRejectionIndexer(ctx context.Context, cfg config.Config) {
 	rindexer := &rejectionIndexer{
-		log:        cfg.Log().WithField("who", cfg.RejectionsIndexer().RunnerName),
-		rarimocore: rarimocore.NewQueryClient(cfg.Cosmos()),
-		storage:    cfg.CachedStorage().Clone(),
+		log:     cfg.Log().WithField("who", cfg.RejectionsIndexer().RunnerName),
+		storage: cfg.CachedStorage().Clone(),
 	}
 
 	msgs.NewConsumer(
@@ -30,9 +29,8 @@ func RunRejectionIndexer(ctx context.Context, cfg config.Config) {
 }
 
 type rejectionIndexer struct {
-	log        *logan.Entry
-	rarimocore rarimocore.QueryClient
-	storage    data.Storage
+	log     *logan.Entry
+	storage data.Storage
 }
 
 func (p *rejectionIndexer) Handle(ctx context.Context, msgs []msgs.Message) error {

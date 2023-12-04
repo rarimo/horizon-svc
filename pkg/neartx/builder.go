@@ -32,7 +32,7 @@ func NewBuilder(nearInfo NearInfoer, bridgeAddr common.AccountID) *Builder {
 }
 
 func (b *Builder) BuildTx(ctx context.Context, req *resources.BuildTx, rawTxData interface{}) (*resources.UnsubmittedTx, error) {
-	txData, ok := rawTxData.(resources.NearTxData) // TODO move to resources
+	txData, ok := rawTxData.(resources.NearTxData)
 	if !ok {
 		return nil, errors.From(errors.New("invalid tx_data"), logan.F{
 			"expected": "resources.NearTxData",

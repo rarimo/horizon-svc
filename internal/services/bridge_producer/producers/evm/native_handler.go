@@ -6,7 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
-	gobind "github.com/rarimo/evm-bridge-contracts/gobind/contracts/interfaces/handlers"
+	native "github.com/rarimo/evm-bridge-contracts/bindings/contracts/interfaces/handlers/inativehandler"
 	"github.com/rarimo/horizon-svc/internal/data/redis"
 	"github.com/rarimo/horizon-svc/internal/services"
 	"github.com/rarimo/horizon-svc/internal/services/bridge_producer/producers/cursorer"
@@ -19,13 +19,13 @@ type nativeHandler struct {
 	log       *logan.Entry
 	cli       *ethclient.Client
 	chain     string
-	handler   *gobind.INativeHandler
+	handler   *native.INativeHandler
 	cursorer  types.Cursorer
 	publisher services.QPublisher
 }
 
 func newNativeHandler(log *logan.Entry, cli *ethclient.Client, chain string, kv *redis.KeyValueProvider, publisher services.QPublisher, contractAddress common.Address, cursorKey, initialCursor string) Handler {
-	handler, err := gobind.NewINativeHandler(contractAddress, cli)
+	handler, err := native.NewINativeHandler(contractAddress, cli)
 	if err != nil {
 		panic(errors.Wrap(err, "failed to init handler", logan.F{
 			"handler": HandlerNative,

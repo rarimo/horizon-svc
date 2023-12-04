@@ -34,15 +34,6 @@ ipfs_gateway:
       project_id: ""
       project_secret: ""
 
-chain_gateway:
-  gateways:
-    - name: "Solana"
-      type: 1
-      rpc: "https://solana-testnet.quiknode.pro/..."
-    - name: "Fuji"
-      type: 0
-      rpc: "https://fuji-testnet.quiknode.pro/..."
-
 data:
   chains:
     - name: "Goerli"
