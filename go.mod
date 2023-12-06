@@ -17,7 +17,6 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gogo/protobuf v1.3.3
 	github.com/google/jsonapi v0.0.0-20200226002910-c8283f632fb7
-	github.com/mr-tron/base58 v1.2.0
 	github.com/near/borsh-go v0.3.1
 	github.com/olegfomenko/solana-go v1.4.2-0.20221104112355-eb3546bb0e15
 	github.com/pkg/errors v0.9.1
@@ -32,6 +31,7 @@ require (
 	github.com/stretchr/testify v1.8.3
 	github.com/tailscale/hujson v0.0.0-20221223112325-20486734a56a
 	github.com/tendermint/tendermint v0.34.27
+	github.com/ulule/limiter/v3 v3.11.2
 	github.com/vmihailenco/msgpack v4.0.4+incompatible
 	gitlab.com/distributed_lab/ape v1.7.1
 	gitlab.com/distributed_lab/figure/v3 v3.1.3
@@ -40,7 +40,6 @@ require (
 	gitlab.com/distributed_lab/lorem v0.2.0
 	gitlab.com/distributed_lab/running v1.6.1-0.20230320085515-73d0e947e96d
 	gitlab.com/distributed_lab/urlval v3.0.0+incompatible
-	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0
 	golang.org/x/text v0.14.0
 	google.golang.org/grpc v1.59.0
 )
@@ -169,6 +168,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mostynb/zstdpool-freelist v0.0.0-20201229113212-927304c0c3b1 // indirect
+	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
@@ -212,7 +212,6 @@ require (
 	github.com/tklauser/numcpus v0.4.0 // indirect
 	github.com/tyler-smith/go-bip39 v1.1.0 // indirect
 	github.com/ulikunitz/xz v0.5.8 // indirect
-	github.com/ulule/limiter/v3 v3.11.2 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/yuin/gopher-lua v1.1.0 // indirect
@@ -226,6 +225,7 @@ require (
 	go.uber.org/ratelimit v0.2.0 // indirect
 	go.uber.org/zap v1.23.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
+	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0 // indirect
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/oauth2 v0.13.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect

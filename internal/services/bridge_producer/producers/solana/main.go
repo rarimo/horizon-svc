@@ -57,7 +57,9 @@ func New(
 			panic(errors.Wrap(err, "failed to get last signatures", f))
 		}
 
-		initialCursor = signatures[len(signatures)-1].Signature.String()
+		if len(signatures) > 0 {
+			initialCursor = signatures[len(signatures)-1].Signature.String()
+		}
 	}
 
 	return &solanaProducer{
